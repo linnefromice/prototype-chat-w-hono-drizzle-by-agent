@@ -213,7 +213,7 @@ class FakeChatRepository implements ChatRepository {
       return {
         messageId: bookmark.messageId,
         conversationId: message?.conversationId ?? uuid(0),
-        text: message?.text,
+        text: message?.text ?? null,
         createdAt: bookmark.createdAt,
         messageCreatedAt: message?.createdAt ?? bookmark.createdAt,
       }
