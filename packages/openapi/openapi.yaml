@@ -250,6 +250,116 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Reaction'
+  /conversations/{id}/read:
+    post:
+      summary: Update last read message in a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateConversationReadRequest'
+      responses:
+        '200':
+          description: Updated read position
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateConversationReadResponse'
+  /conversations/{id}/unread-count:
+    get:
+      summary: Get unread count for a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Unread count for the conversation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnreadCountResponse'
+  /messages/{id}/bookmarks:
+    post:
+      summary: Bookmark a message
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookmarkRequest'
+      responses:
+        '201':
+          description: Message bookmarked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookmarkResponse'
+    delete:
+      summary: Remove bookmark from a message
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Bookmark removed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnbookmarkResponse'
+  /users/{userId}/bookmarks:
+    get:
+      summary: List bookmarks for a user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User bookmarks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BookmarkListItem'
 components:
   schemas:
     HealthResponse:
@@ -476,3 +586,128 @@ components:
       required:
         - userId
         - emoji
+    UpdateConversationReadRequest:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        lastReadMessageId:
+          type: string
+          format: uuid
+      required:
+        - userId
+        - lastReadMessageId
+    ConversationRead:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        conversationId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        lastReadMessageId:
+          type: string
+          format: uuid
+          nullable: true
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - conversationId
+        - userId
+        - updatedAt
+    UpdateConversationReadResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ok]
+        read:
+          $ref: '#/components/schemas/ConversationRead'
+      required:
+        - status
+        - read
+    UnreadCountResponse:
+      type: object
+      properties:
+        unreadCount:
+          type: integer
+          minimum: 0
+      required:
+        - unreadCount
+    Bookmark:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        messageId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - messageId
+        - userId
+        - createdAt
+    BookmarkRequest:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+      required:
+        - userId
+    BookmarkResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [bookmarked]
+        bookmark:
+          $ref: '#/components/schemas/Bookmark'
+      required:
+        - status
+        - bookmark
+    UnbookmarkResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [unbookmarked]
+      required:
+        - status
+    BookmarkListItem:
+      type: object
+      properties:
+        messageId:
+          type: string
+          format: uuid
+        conversationId:
+          type: string
+          format: uuid
+        text:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        messageCreatedAt:
+          type: string
+          format: date-time
+      required:
+        - messageId
+        - conversationId
+        - createdAt
+        - messageCreatedAt

@@ -1,11 +1,16 @@
 import type {
   AddParticipantRequest,
+  Bookmark,
+  BookmarkListItem,
+  BookmarkRequest,
   ConversationDetail,
+  ConversationRead,
   CreateConversationRequest,
   Message,
   Reaction,
   ReactionRequest,
   SendMessageRequest,
+  UpdateConversationReadRequest,
 } from 'openapi'
 import type { Participant } from 'openapi/dist/schemas/ParticipantSchema'
 
@@ -32,4 +37,14 @@ export interface ChatRepository {
 
   addReaction(messageId: string, data: ReactionRequest): Promise<Reaction>
   removeReaction(messageId: string, emoji: string, userId: string): Promise<Reaction | null>
+
+  updateConversationRead(
+    conversationId: string,
+    data: UpdateConversationReadRequest,
+  ): Promise<ConversationRead>
+  countUnread(conversationId: string, userId: string): Promise<number>
+
+  addBookmark(messageId: string, data: BookmarkRequest): Promise<Bookmark>
+  removeBookmark(messageId: string, userId: string): Promise<Bookmark | null>
+  listBookmarks(userId: string): Promise<BookmarkListItem[]>
 }
