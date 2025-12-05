@@ -4,8 +4,12 @@ import { loadEnvConfig } from '../../utils/env'
 
 const env = loadEnvConfig()
 
-const pool = new Pool({
+export const pool = new Pool({
   connectionString: env.DATABASE_URL,
 })
 
 export const db = drizzle(pool)
+
+export const closeDbConnection = async () => {
+  await pool.end()
+}
