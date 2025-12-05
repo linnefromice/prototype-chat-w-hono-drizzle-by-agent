@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import type { HealthResponse } from 'openapi/schemas/HealthResponseSchema'
+import type { HealthResponse } from 'openapi'
 
 const router = new Hono()
 
