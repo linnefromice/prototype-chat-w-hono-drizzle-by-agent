@@ -1,4 +1,5 @@
 import { and, count, desc, eq, gt, inArray, lt } from 'drizzle-orm'
+import type { SQL } from 'drizzle-orm'
 import type {
   AddParticipantRequest,
   Bookmark,
@@ -294,7 +295,7 @@ export class DrizzleChatRepository implements ChatRepository {
       .where(and(eq(conversationReads.conversationId, conversationId), eq(conversationReads.userId, userId)))
       .limit(1)
 
-    let predicate = eq(messages.conversationId, conversationId)
+    let predicate: SQL<unknown> = eq(messages.conversationId, conversationId)
 
     if (readRow?.lastReadMessageId) {
       const [lastReadMessage] = await this.client
@@ -303,9 +304,10 @@ export class DrizzleChatRepository implements ChatRepository {
         .where(eq(messages.id, readRow.lastReadMessageId))
         .limit(1)
 
-      if (lastReadMessage?.createdAt) {
-        predicate = and(predicate, gt(messages.createdAt, lastReadMessage.createdAt))
-      }
+        if (lastReadMessage?.createdAt) {
+          const updatedPredicate = and(predicate, gt(messages.createdAt, lastReadMessage.createdAt))
+          predicate = updatedPredicate ?? predicate
+        }
     }
 
     const [result] = await this.client
