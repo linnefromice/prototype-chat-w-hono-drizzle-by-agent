@@ -1,11 +1,16 @@
 import type {
   AddParticipantRequest,
+  Bookmark,
+  BookmarkListItem,
+  BookmarkRequest,
   ConversationDetail,
+  ConversationRead,
   CreateConversationRequest,
   Message,
   Reaction,
   ReactionRequest,
   SendMessageRequest,
+  UpdateConversationReadRequest,
 } from 'openapi'
 import type { Participant } from 'openapi/dist/schemas/ParticipantSchema'
 import type { ChatRepository, MessageQueryOptions } from '../repositories/chatRepository'
@@ -113,6 +118,60 @@ export class ChatUsecase {
     }
 
     return removed
+  }
+
+  async markConversationRead(
+    conversationId: string,
+    data: UpdateConversationReadRequest,
+  ): Promise<ConversationRead> {
+    await this.ensureActiveParticipant(conversationId, data.userId)
+
+    const message = await this.repo.findMessageById(data.lastReadMessageId)
+    if (!message || message.conversationId !== conversationId) {
+      throw new HttpError(400, 'lastReadMessageId must belong to the conversation')
+    }
+
+    return this.repo.updateConversationRead(conversationId, data)
+  }
+
+  async countUnread(conversationId: string, userId: string): Promise<number> {
+    await this.ensureActiveParticipant(conversationId, userId)
+    return this.repo.countUnread(conversationId, userId)
+  }
+
+  async addBookmark(messageId: string, data: BookmarkRequest): Promise<Bookmark> {
+    const message = await this.repo.findMessageById(messageId)
+    if (!message) {
+      throw new HttpError(404, 'Message not found')
+    }
+
+    await this.ensureActiveParticipant(message.conversationId, data.userId)
+
+    return this.repo.addBookmark(messageId, data)
+  }
+
+  async removeBookmark(messageId: string, userId: string): Promise<Bookmark> {
+    const message = await this.repo.findMessageById(messageId)
+    if (!message) {
+      throw new HttpError(404, 'Message not found')
+    }
+
+    await this.ensureActiveParticipant(message.conversationId, userId)
+
+    const removed = await this.repo.removeBookmark(messageId, userId)
+    if (!removed) {
+      throw new HttpError(404, 'Bookmark not found')
+    }
+
+    return removed
+  }
+
+  async listBookmarks(userId: string): Promise<BookmarkListItem[]> {
+    if (!userId) {
+      throw new HttpError(400, 'userId is required')
+    }
+
+    return this.repo.listBookmarks(userId)
   }
 
   async createSystemMessage(

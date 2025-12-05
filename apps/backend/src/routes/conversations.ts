@@ -3,6 +3,7 @@ import {
   AddParticipantRequestSchema,
   CreateConversationRequestSchema,
   SendMessageRequestSchema,
+  UpdateConversationReadRequestSchema,
 } from 'openapi'
 import { DrizzleChatRepository } from '../repositories/drizzleChatRepository'
 import { ChatUsecase } from '../usecases/chatUsecase'
@@ -101,6 +102,34 @@ router.post('/:id/messages', async c => {
   try {
     const created = await chatUsecase.sendMessage(conversationId, payload)
     return c.json(created, 201)
+  } catch (error) {
+    return handleError(error, c)
+  }
+})
+
+router.post('/:id/read', async c => {
+  const conversationId = c.req.param('id')
+  const payload = UpdateConversationReadRequestSchema.parse(await c.req.json())
+
+  try {
+    const read = await chatUsecase.markConversationRead(conversationId, payload)
+    return c.json({ status: 'ok', read })
+  } catch (error) {
+    return handleError(error, c)
+  }
+})
+
+router.get('/:id/unread-count', async c => {
+  const conversationId = c.req.param('id')
+  const userId = c.req.query('userId')
+
+  if (!userId) {
+    return c.json({ message: 'userId is required' }, 400)
+  }
+
+  try {
+    const unreadCount = await chatUsecase.countUnread(conversationId, userId)
+    return c.json({ unreadCount })
   } catch (error) {
     return handleError(error, c)
   }

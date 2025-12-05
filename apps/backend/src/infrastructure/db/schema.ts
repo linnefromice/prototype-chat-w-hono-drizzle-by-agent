@@ -1,5 +1,6 @@
 import {
   foreignKey,
+  index,
   pgEnum,
   pgTable,
   text,
@@ -93,5 +94,51 @@ export const reactions = pgTable(
   },
   table => ({
     reactionUnique: uniqueIndex('reaction_unique').on(table.messageId, table.userId, table.emoji),
+  }),
+)
+
+export const conversationReads = pgTable(
+  'conversation_reads',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    conversationId: uuid('conversation_id')
+      .notNull()
+      .references(() => conversations.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    lastReadMessageId: uuid('last_read_message_id').references(() => messages.id, {
+      onDelete: 'set null',
+    }),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  table => ({
+    conversationUserUnique: uniqueIndex('conversation_reads_conversation_user_unique').on(
+      table.conversationId,
+      table.userId,
+    ),
+    lastReadMessageIndex: index('conversation_reads_last_read_message_idx').on(
+      table.lastReadMessageId,
+    ),
+  }),
+)
+
+export const messageBookmarks = pgTable(
+  'message_bookmarks',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    messageId: uuid('message_id')
+      .notNull()
+      .references(() => messages.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  table => ({
+    messageUserUnique: uniqueIndex('message_bookmarks_message_user_unique').on(
+      table.messageId,
+      table.userId,
+    ),
   }),
 )

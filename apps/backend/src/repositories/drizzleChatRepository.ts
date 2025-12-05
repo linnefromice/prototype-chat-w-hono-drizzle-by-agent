@@ -1,16 +1,29 @@
-import { and, desc, eq, inArray, lt } from 'drizzle-orm'
+import { and, count, desc, eq, gt, inArray, lt } from 'drizzle-orm'
+import type { SQL } from 'drizzle-orm'
 import type {
   AddParticipantRequest,
+  Bookmark,
+  BookmarkListItem,
+  BookmarkRequest,
   ConversationDetail,
+  ConversationRead,
   CreateConversationRequest,
   Message,
   Reaction,
   ReactionRequest,
   SendMessageRequest,
+  UpdateConversationReadRequest,
 } from 'openapi'
 import type { Participant } from 'openapi/dist/schemas/ParticipantSchema'
 import { db } from '../infrastructure/db/client'
-import { conversations, messages, participants, reactions } from '../infrastructure/db/schema'
+import {
+  conversationReads,
+  conversations,
+  messageBookmarks,
+  messages,
+  participants,
+  reactions,
+} from '../infrastructure/db/schema'
 import type { ChatRepository, MessageQueryOptions } from './chatRepository'
 
 const mapParticipant = (row: typeof participants.$inferSelect): Participant => ({
@@ -49,6 +62,21 @@ const mapReaction = (row: typeof reactions.$inferSelect): Reaction => ({
   messageId: row.messageId,
   userId: row.userId,
   emoji: row.emoji,
+  createdAt: row.createdAt.toISOString(),
+})
+
+const mapConversationRead = (row: typeof conversationReads.$inferSelect): ConversationRead => ({
+  id: row.id,
+  conversationId: row.conversationId,
+  userId: row.userId,
+  lastReadMessageId: row.lastReadMessageId ?? undefined,
+  updatedAt: row.updatedAt.toISOString(),
+})
+
+const mapBookmark = (row: typeof messageBookmarks.$inferSelect): Bookmark => ({
+  id: row.id,
+  messageId: row.messageId,
+  userId: row.userId,
   createdAt: row.createdAt.toISOString(),
 })
 
@@ -238,5 +266,108 @@ export class DrizzleChatRepository implements ChatRepository {
       .returning()
 
     return reactionRow ? mapReaction(reactionRow) : null
+  }
+
+  async updateConversationRead(
+    conversationId: string,
+    data: UpdateConversationReadRequest,
+  ): Promise<ConversationRead> {
+    const [readRow] = await this.client
+      .insert(conversationReads)
+      .values({
+        conversationId,
+        userId: data.userId,
+        lastReadMessageId: data.lastReadMessageId,
+      })
+      .onConflictDoUpdate({
+        target: [conversationReads.conversationId, conversationReads.userId],
+        set: { lastReadMessageId: data.lastReadMessageId, updatedAt: new Date() },
+      })
+      .returning()
+
+    return mapConversationRead(readRow)
+  }
+
+  async countUnread(conversationId: string, userId: string): Promise<number> {
+    const [readRow] = await this.client
+      .select()
+      .from(conversationReads)
+      .where(and(eq(conversationReads.conversationId, conversationId), eq(conversationReads.userId, userId)))
+      .limit(1)
+
+    let predicate: SQL<unknown> = eq(messages.conversationId, conversationId)
+
+    if (readRow?.lastReadMessageId) {
+      const [lastReadMessage] = await this.client
+        .select({ createdAt: messages.createdAt })
+        .from(messages)
+        .where(eq(messages.id, readRow.lastReadMessageId))
+        .limit(1)
+
+        if (lastReadMessage?.createdAt) {
+          const updatedPredicate = and(predicate, gt(messages.createdAt, lastReadMessage.createdAt))
+          predicate = updatedPredicate ?? predicate
+        }
+    }
+
+    const [result] = await this.client
+      .select({ value: count() })
+      .from(messages)
+      .where(predicate)
+
+    return Number(result?.value ?? 0)
+  }
+
+  async addBookmark(messageId: string, data: BookmarkRequest): Promise<Bookmark> {
+    const [bookmarkRow] = await this.client
+      .insert(messageBookmarks)
+      .values({
+        messageId,
+        userId: data.userId,
+      })
+      .onConflictDoNothing({ target: [messageBookmarks.messageId, messageBookmarks.userId] })
+      .returning()
+
+    if (bookmarkRow) {
+      return mapBookmark(bookmarkRow)
+    }
+
+    const [existing] = await this.client
+      .select()
+      .from(messageBookmarks)
+      .where(and(eq(messageBookmarks.messageId, messageId), eq(messageBookmarks.userId, data.userId)))
+      .limit(1)
+
+    if (!existing) {
+      throw new Error('Failed to upsert bookmark')
+    }
+
+    return mapBookmark(existing)
+  }
+
+  async removeBookmark(messageId: string, userId: string): Promise<Bookmark | null> {
+    const [bookmarkRow] = await this.client
+      .delete(messageBookmarks)
+      .where(and(eq(messageBookmarks.messageId, messageId), eq(messageBookmarks.userId, userId)))
+      .returning()
+
+    return bookmarkRow ? mapBookmark(bookmarkRow) : null
+  }
+
+  async listBookmarks(userId: string): Promise<BookmarkListItem[]> {
+    const rows = await this.client
+      .select({ bookmark: messageBookmarks, message: messages })
+      .from(messageBookmarks)
+      .innerJoin(messages, eq(messageBookmarks.messageId, messages.id))
+      .where(eq(messageBookmarks.userId, userId))
+      .orderBy(desc(messageBookmarks.createdAt))
+
+    return rows.map(row => ({
+      messageId: row.message.id,
+      conversationId: row.message.conversationId,
+      text: row.message.text ?? undefined,
+      createdAt: row.bookmark.createdAt.toISOString(),
+      messageCreatedAt: row.message.createdAt.toISOString(),
+    }))
   }
 }
