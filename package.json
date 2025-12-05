@@ -1,0 +1,13 @@
+{
+  "name": "prototype-hono-drizzle-codex",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:backend": "npm run dev --workspace backend",
+    "generate:api": "npm run generate --workspace openapi"
+  }
+}
