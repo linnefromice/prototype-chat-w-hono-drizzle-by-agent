@@ -307,6 +307,6 @@ describe('ChatUsecase', () => {
     )
 
     const message = await repo.createMessage(CONVERSATION_ID, { senderUserId: ACTIVE_USER, text: 'Hello', type: 'text' })
-    await expect(usecase.removeBookmark(message.id, uuid(201))).rejects.toThrow(new HttpError(404, 'Bookmark not found'))
+    await expect(usecase.removeBookmark(message.id, ACTIVE_USER)).rejects.toThrow(new HttpError(404, 'Bookmark not found'))
   })
 })
