@@ -1,12 +1,13 @@
 import { Hono } from 'hono'
-import { db } from '../infrastructure/db/client'
-import { items } from '../infrastructure/db/schema'
-import { CreateItemRequestSchema, type Item } from '@openapi'
+import { CreateItemRequestSchema } from '@openapi'
+import { DrizzleItemRepository } from '../repositories/drizzleItemRepository'
+import { ItemUsecase } from '../usecases/itemUsecase'
 
 const router = new Hono()
+const itemUsecase = new ItemUsecase(new DrizzleItemRepository())
 
 router.get('/', async (c) => {
-  const records = await db.select().from(items).orderBy(items.createdAt)
+  const records = await itemUsecase.getAllItems()
   return c.json(records)
 })
 
@@ -14,12 +15,16 @@ router.post('/', async (c) => {
   const body = await c.req.json()
   const payload = CreateItemRequestSchema.parse(body)
 
-  const [created] = await db
-    .insert(items)
-    .values({ name: payload.name })
-    .returning()
+  try {
+    const created = await itemUsecase.createItem(payload.name)
+    return c.json(created, 201)
+  } catch (error) {
+    if (error instanceof Error && error.message === 'Item name too short') {
+      return c.json({ message: error.message }, 400)
+    }
 
-  return c.json(created as Item, 201)
+    throw error
+  }
 })
 
 export default router
