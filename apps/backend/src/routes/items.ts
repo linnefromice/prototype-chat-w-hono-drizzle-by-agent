@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { CreateItemRequestSchema } from '@openapi'
+import { CreateItemRequestSchema } from 'openapi'
 import { DrizzleItemRepository } from '../repositories/drizzleItemRepository.js'
 import { ItemUsecase } from '../usecases/itemUsecase.js'
 

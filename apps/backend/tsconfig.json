@@ -11,8 +11,8 @@
     "rootDir": "src",
     "baseUrl": "./src",
     "paths": {
-      "@openapi": ["../../packages/openapi/dist/index.ts"],
-      "@openapi/*": ["../../packages/openapi/dist/*"]
+      "openapi": ["../../packages/openapi/dist/index.ts"],
+      "openapi/*": ["../../packages/openapi/dist/*"]
     }
   },
   "include": ["src"]

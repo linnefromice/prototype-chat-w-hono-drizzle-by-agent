@@ -1,4 +1,4 @@
-import type { Item } from '@openapi'
+import type { Item } from 'openapi'
 
 export interface ItemRepository {
   findAll(): Promise<Item[]>

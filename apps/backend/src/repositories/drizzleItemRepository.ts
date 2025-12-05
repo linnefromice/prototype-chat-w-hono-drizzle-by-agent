@@ -1,4 +1,4 @@
-import type { Item } from '@openapi'
+import type { Item } from 'openapi'
 import { db } from '../infrastructure/db/client.js'
 import { items } from '../infrastructure/db/schema.js'
 import type { ItemRepository } from './itemRepository.js'

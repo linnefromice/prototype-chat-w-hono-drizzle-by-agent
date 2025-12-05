@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import type { Item } from '@openapi'
+import type { Item } from 'openapi'
 import type { ItemRepository } from '../itemRepository.js'
 
 export class MockItemRepository implements ItemRepository {
