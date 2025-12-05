@@ -42,6 +42,214 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Item'
+  /conversations:
+    get:
+      summary: List conversations for a user
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Conversations for the given user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ConversationDetail'
+    post:
+      summary: Create a conversation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateConversationRequest'
+      responses:
+        '201':
+          description: Created conversation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationDetail'
+  /conversations/{id}:
+    get:
+      summary: Get a conversation detail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Conversation detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationDetail'
+  /conversations/{id}/participants:
+    post:
+      summary: Add a participant to a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddParticipantRequest'
+      responses:
+        '201':
+          description: Added participant
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Participant'
+  /conversations/{id}/participants/{userId}:
+    delete:
+      summary: Remove participant from conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Participant marked as left
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Participant'
+  /conversations/{id}/messages:
+    get:
+      summary: List messages in a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: before
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Messages collection
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Message'
+    post:
+      summary: Send message to a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendMessageRequest'
+      responses:
+        '201':
+          description: Created message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+  /messages/{id}/reactions:
+    post:
+      summary: Add reaction to message
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReactionRequest'
+      responses:
+        '201':
+          description: Reaction added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reaction'
+  /messages/{id}/reactions/{emoji}:
+    delete:
+      summary: Remove reaction from message
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: emoji
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Reaction removed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reaction'
 components:
   schemas:
     HealthResponse:
@@ -73,3 +281,198 @@ components:
           type: string
       required:
         - name
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        avatarUrl:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - createdAt
+    Participant:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        conversationId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [member, admin]
+        joinedAt:
+          type: string
+          format: date-time
+        leftAt:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - id
+        - conversationId
+        - userId
+        - role
+        - joinedAt
+    Conversation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [direct, group]
+        name:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - type
+        - createdAt
+    ConversationDetail:
+      allOf:
+        - $ref: '#/components/schemas/Conversation'
+        - type: object
+          properties:
+            participants:
+              type: array
+              items:
+                $ref: '#/components/schemas/Participant'
+          required:
+            - participants
+    Message:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        conversationId:
+          type: string
+          format: uuid
+        senderUserId:
+          type: string
+          format: uuid
+          nullable: true
+        type:
+          type: string
+          enum: [text, system]
+        text:
+          type: string
+          nullable: true
+        replyToMessageId:
+          type: string
+          format: uuid
+          nullable: true
+        systemEvent:
+          type: string
+          enum: [join, leave]
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - conversationId
+        - type
+        - createdAt
+    Reaction:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        messageId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        emoji:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - messageId
+        - userId
+        - emoji
+        - createdAt
+    CreateConversationRequest:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [direct, group]
+        name:
+          type: string
+          nullable: true
+        participantIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+      required:
+        - type
+        - participantIds
+    AddParticipantRequest:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [member, admin]
+          nullable: true
+      required:
+        - userId
+    SendMessageRequest:
+      type: object
+      properties:
+        senderUserId:
+          type: string
+          format: uuid
+          nullable: true
+        text:
+          type: string
+          nullable: true
+        replyToMessageId:
+          type: string
+          format: uuid
+          nullable: true
+        systemEvent:
+          type: string
+          enum: [join, leave]
+          nullable: true
+      required:
+        - senderUserId
+    ReactionRequest:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        emoji:
+          type: string
+      required:
+        - userId
+        - emoji
