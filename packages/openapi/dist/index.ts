@@ -275,6 +275,18 @@ export const deleteMessagesIdBookmarksResponse = zod.object({
 });
 
 /**
+ * Get a list of all users. Only available in development mode.
+ * @summary List all users (development only)
+ */
+export const getUsersResponseItem = zod.object({
+  id: zod.string().uuid(),
+  name: zod.string(),
+  avatarUrl: zod.string().nullish(),
+  createdAt: zod.string().datetime({}),
+});
+export const getUsersResponse = zod.array(getUsersResponseItem);
+
+/**
  * Creates a new user. Only available in development mode.
  * @summary Create user (development only)
  */

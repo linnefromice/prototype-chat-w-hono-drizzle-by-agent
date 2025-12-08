@@ -19,6 +19,15 @@ const handleError = (error: unknown, c: any) => {
   throw error
 }
 
+router.get('/', devOnly, async c => {
+  try {
+    const users = await userUsecase.listAllUsers()
+    return c.json(users)
+  } catch (error) {
+    return handleError(error, c)
+  }
+})
+
 router.post('/', devOnly, async c => {
   const body = await c.req.json()
   const payload = CreateUserRequestSchema.parse(body)

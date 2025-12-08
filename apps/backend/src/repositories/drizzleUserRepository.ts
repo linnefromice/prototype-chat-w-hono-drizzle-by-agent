@@ -34,4 +34,13 @@ export class DrizzleUserRepository implements UserRepository {
       createdAt: found.createdAt.toISOString(),
     }
   }
+
+  async listAll(): Promise<User[]> {
+    const allUsers = await this.client.select().from(users)
+
+    return allUsers.map((user) => ({
+      ...user,
+      createdAt: user.createdAt.toISOString(),
+    }))
+  }
 }

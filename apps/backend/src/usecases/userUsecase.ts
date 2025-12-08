@@ -24,4 +24,8 @@ export class UserUsecase {
 
     return user
   }
+
+  async listAllUsers() {
+    return this.repo.listAll()
+  }
 }
