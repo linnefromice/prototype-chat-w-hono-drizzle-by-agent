@@ -105,6 +105,84 @@ If you prefer to use your own PostgreSQL instance, update `DATABASE_URL` in
   npm run generate --workspace openapi
   ```
 
+## Common workflows
+
+All commands can be run from the repository root.
+
+### After code changes
+
+**Quick verification**:
+
+```bash
+npm run verify
+# Runs: build + test
+```
+
+Or individually:
+
+```bash
+npm run build
+npm run test
+```
+
+### After OpenAPI spec changes
+
+When you modify `packages/openapi/openapi.yaml`:
+
+```bash
+npm run api:update
+# Runs: generate:api → build → test
+```
+
+Or step by step:
+
+```bash
+npm run generate:api
+npm run build
+npm run test
+```
+
+### After database schema changes
+
+When you modify `apps/backend/src/infrastructure/db/schema.ts`:
+
+```bash
+npm run db:migrate
+# Runs: db:generate → db:push → test
+```
+
+Or step by step:
+
+```bash
+npm run db:generate  # Generate migration files
+npm run db:push      # Apply migrations to database
+npm run test         # Verify nothing broke
+```
+
+### Available npm scripts
+
+**Development**:
+- `npm run dev:backend` - Start backend in watch mode
+- `npm run build` - Build backend
+- `npm run test` - Run all tests
+
+**Database**:
+- `npm run db:up` - Start PostgreSQL with Docker Compose
+- `npm run db:down` - Stop PostgreSQL
+- `npm run db:logs` - View PostgreSQL logs
+- `npm run db:reset` - Reset database (remove all data)
+- `npm run db:generate` - Generate migration files
+- `npm run db:push` - Apply migrations
+- `npm run db:migrate` - Full migration workflow (generate → push → test)
+
+**API/Types**:
+- `npm run generate:api` - Regenerate OpenAPI types and schemas
+- `npm run api:update` - Full API update workflow (generate → build → test)
+
+**Verification**:
+- `npm run verify` - Build and test everything
+- `npm run build:test` - Same as verify
+
 ## Database migrations
 
 Drizzle Kit reads configuration from `apps/backend/drizzle.config.ts`, which uses

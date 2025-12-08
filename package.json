@@ -12,6 +12,16 @@
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "db:logs": "docker compose logs -f postgres",
-    "db:reset": "docker compose down -v && docker compose up -d"
+    "db:reset": "docker compose down -v && docker compose up -d",
+    "backend:build": "npm run build --workspace backend",
+    "backend:test": "npm run test --workspace backend",
+    "build": "npm run backend:build",
+    "test": "npm run backend:test",
+    "build:test": "npm run backend:build && npm run backend:test",
+    "api:update": "npm run generate:api && npm run backend:build && npm run backend:test",
+    "db:generate": "cd apps/backend && npx drizzle-kit generate",
+    "db:push": "cd apps/backend && npx drizzle-kit push",
+    "db:migrate": "npm run db:generate && npm run db:push && npm run backend:test",
+    "verify": "npm run build:test"
   }
 }
