@@ -16,6 +16,10 @@ export class MockUserRepository implements UserRepository {
     return user
   }
 
+  async findById(id: string): Promise<User | null> {
+    return this.users.find(user => user.id === id) || null
+  }
+
   // Helper method for testing
   getAll(): User[] {
     return this.users
