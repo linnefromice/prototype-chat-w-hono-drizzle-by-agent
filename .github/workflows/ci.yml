@@ -56,6 +56,30 @@ jobs:
           npx drizzle-kit push --dialect=postgresql --schema=./src/infrastructure/db/schema.ts --url="${DATABASE_URL}"
         working-directory: apps/backend
 
-      - name: Run backend checks
-        run: npm run test
+      - name: Run backend tests with coverage
+        run: npm run test:coverage
         working-directory: apps/backend
+
+      - name: Display coverage summary
+        run: |
+          echo "## Test Coverage Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Overall Coverage" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          cat apps/backend/coverage/coverage-summary.json | jq -r '
+            .total |
+            "Statements: \(.statements.pct)%\nBranches:   \(.branches.pct)%\nFunctions:  \(.functions.pct)%\nLines:      \(.lines.pct)%"
+          ' >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Detailed Coverage by File" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          cat apps/backend/coverage/coverage-summary.json | jq -r '
+            to_entries |
+            map(select(.key != "total")) |
+            sort_by(.value.lines.pct) |
+            reverse |
+            .[] |
+            "\(.key): \(.value.lines.pct)% lines"
+          ' | head -20 >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
