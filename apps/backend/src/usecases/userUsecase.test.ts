@@ -72,4 +72,67 @@ describe('UserUsecase', () => {
       expect(user.avatarUrl).toBeNull()
     })
   })
+
+  describe('getUserById', () => {
+    it('returns user when found', async () => {
+      const created = await usecase.createUser({
+        name: 'John Doe',
+        avatarUrl: 'https://example.com/avatar.jpg',
+      })
+
+      const found = await usecase.getUserById(created.id)
+
+      expect(found.id).toBe(created.id)
+      expect(found.name).toBe('John Doe')
+      expect(found.avatarUrl).toBe('https://example.com/avatar.jpg')
+    })
+
+    it('throws 404 error when user not found', async () => {
+      await expect(
+        usecase.getUserById('non-existent-id')
+      ).rejects.toThrow('User not found')
+    })
+  })
+
+  describe('listAllUsers', () => {
+    it('returns empty array when no users exist', async () => {
+      const users = await usecase.listAllUsers()
+
+      expect(users).toEqual([])
+      expect(users).toHaveLength(0)
+    })
+
+    it('returns all users when users exist', async () => {
+      const user1 = await usecase.createUser({ name: 'Alice' })
+      const user2 = await usecase.createUser({ name: 'Bob' })
+      const user3 = await usecase.createUser({ name: 'Carol' })
+
+      const users = await usecase.listAllUsers()
+
+      expect(users).toHaveLength(3)
+      expect(users[0].id).toBe(user1.id)
+      expect(users[0].name).toBe('Alice')
+      expect(users[1].id).toBe(user2.id)
+      expect(users[1].name).toBe('Bob')
+      expect(users[2].id).toBe(user3.id)
+      expect(users[2].name).toBe('Carol')
+    })
+
+    it('returns users with all fields populated', async () => {
+      await usecase.createUser({
+        name: 'Test User',
+        avatarUrl: 'https://example.com/avatar.jpg',
+      })
+
+      const users = await usecase.listAllUsers()
+
+      expect(users).toHaveLength(1)
+      expect(users[0]).toMatchObject({
+        name: 'Test User',
+        avatarUrl: 'https://example.com/avatar.jpg',
+      })
+      expect(users[0].id).toBeDefined()
+      expect(users[0].createdAt).toBeDefined()
+    })
+  })
 })
