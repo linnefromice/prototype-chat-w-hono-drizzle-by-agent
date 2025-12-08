@@ -8,6 +8,16 @@ describe('Users API', () => {
 
   describe('GET /users', () => {
     it('returns list of users in development mode', async () => {
+      // Create a user first to ensure there's at least one user
+      await app.request('/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: 'Test User for List',
+          avatarUrl: 'https://example.com/test.jpg',
+        }),
+      })
+
       const response = await app.request('/users')
 
       expect(response.status).toBe(200)
@@ -17,15 +27,13 @@ describe('Users API', () => {
       expect(users.length).toBeGreaterThan(0)
 
       // Verify user structure
-      if (users.length > 0) {
-        const user = users[0]
-        expect(user).toHaveProperty('id')
-        expect(user).toHaveProperty('name')
-        expect(user).toHaveProperty('createdAt')
-        expect(typeof user.id).toBe('string')
-        expect(typeof user.name).toBe('string')
-        expect(typeof user.createdAt).toBe('string')
-      }
+      const user = users[0]
+      expect(user).toHaveProperty('id')
+      expect(user).toHaveProperty('name')
+      expect(user).toHaveProperty('createdAt')
+      expect(typeof user.id).toBe('string')
+      expect(typeof user.name).toBe('string')
+      expect(typeof user.createdAt).toBe('string')
     })
 
     it('returns 403 in production mode', async () => {
