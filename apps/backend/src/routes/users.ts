@@ -38,6 +38,17 @@ router.post('/', devOnly, async c => {
   }
 })
 
+router.get('/:id', async c => {
+  const userId = c.req.param('id')
+
+  try {
+    const user = await userUsecase.getUserById(userId)
+    return c.json(user)
+  } catch (error) {
+    return handleError(error, c)
+  }
+})
+
 router.get('/:id/bookmarks', async c => {
   const userId = c.req.param('id')
 

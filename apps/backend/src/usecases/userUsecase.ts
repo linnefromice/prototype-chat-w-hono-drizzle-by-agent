@@ -1,4 +1,5 @@
 import type { UserRepository } from '../repositories/userRepository'
+import { HttpError } from '../utils/errors'
 
 export class UserUsecase {
   constructor(private readonly repo: UserRepository) {}
@@ -12,5 +13,15 @@ export class UserUsecase {
       name: data.name.trim(),
       avatarUrl: data.avatarUrl,
     })
+  }
+
+  async getUserById(id: string) {
+    const user = await this.repo.findById(id)
+
+    if (!user) {
+      throw new HttpError(404, 'User not found')
+    }
+
+    return user
   }
 }

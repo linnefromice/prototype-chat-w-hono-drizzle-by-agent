@@ -360,6 +360,25 @@ paths:
                 $ref: '#/components/schemas/User'
         '403':
           description: Forbidden - only available in development mode
+  /users/{userId}:
+    get:
+      summary: Get user by ID
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
   /users/{userId}/bookmarks:
     get:
       summary: List bookmarks for a user

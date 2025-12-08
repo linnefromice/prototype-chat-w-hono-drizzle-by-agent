@@ -14,12 +14,6 @@ export const participantRoleEnum = pgEnum('participant_role', ['member', 'admin'
 export const messageTypeEnum = pgEnum('message_type', ['text', 'system'])
 export const systemEventEnum = pgEnum('system_event', ['join', 'leave'])
 
-export const items = pgTable('items', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  name: text('name').notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-})
-
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull(),

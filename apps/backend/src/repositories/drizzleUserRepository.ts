@@ -1,3 +1,4 @@
+import { eq } from 'drizzle-orm'
 import type { User } from 'openapi'
 import { db } from '../infrastructure/db/client'
 import { users } from '../infrastructure/db/schema'
@@ -18,6 +19,19 @@ export class DrizzleUserRepository implements UserRepository {
     return {
       ...created,
       createdAt: created.createdAt.toISOString(),
+    }
+  }
+
+  async findById(id: string): Promise<User | null> {
+    const [found] = await this.client.select().from(users).where(eq(users.id, id))
+
+    if (!found) {
+      return null
+    }
+
+    return {
+      ...found,
+      createdAt: found.createdAt.toISOString(),
     }
   }
 }

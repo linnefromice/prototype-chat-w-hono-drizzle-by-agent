@@ -284,6 +284,20 @@ export const postUsersBody = zod.object({
 });
 
 /**
+ * @summary Get user by ID
+ */
+export const getUsersUserIdParams = zod.object({
+  userId: zod.string().uuid(),
+});
+
+export const getUsersUserIdResponse = zod.object({
+  id: zod.string().uuid(),
+  name: zod.string(),
+  avatarUrl: zod.string().nullish(),
+  createdAt: zod.string().datetime({}),
+});
+
+/**
  * @summary List bookmarks for a user
  */
 export const getUsersUserIdBookmarksParams = zod.object({
