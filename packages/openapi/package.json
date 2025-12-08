@@ -1,12 +1,8 @@
 {
   "name": "openapi",
   "version": "0.1.0",
-  "type": "module",
   "main": "dist/index.ts",
   "types": "dist/index.ts",
-  "exports": {
-    ".": "./dist/index.ts"
-  },
   "scripts": {
     "generate": "orval --config orval.config.ts && tsx scripts/post-generate.ts"
   },
