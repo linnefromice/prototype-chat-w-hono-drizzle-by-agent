@@ -9,10 +9,12 @@
   "scripts": {
     "dev:backend": "npm run dev --workspace backend",
     "generate:api": "npm run generate --workspace openapi",
+    "db:viewer": "docker compose up -d",
+    "db:viewer:down": "docker compose down",
+    "db:viewer:logs": "docker compose logs -f sqlite-web",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
-    "db:logs": "docker compose logs -f postgres",
-    "db:reset": "docker compose down -v && docker compose up -d",
+    "db:logs": "docker compose logs -f sqlite-web",
     "backend:build": "npm run build --workspace backend",
     "backend:test": "npm run test --workspace backend",
     "backend:test:coverage": "npm run test:coverage --workspace backend",
@@ -22,8 +24,7 @@
     "build:test": "npm run backend:build && npm run backend:test",
     "api:update": "npm run generate:api && npm run backend:build && npm run backend:test",
     "db:generate": "cd apps/backend && npx drizzle-kit generate",
-    "db:push": "cd apps/backend && npx drizzle-kit push",
-    "db:migrate": "npm run db:generate && npm run db:push && npm run backend:test",
+    "db:migrate": "cd apps/backend && npx tsx scripts/migrate.ts",
     "verify": "npm run build:test"
   }
 }

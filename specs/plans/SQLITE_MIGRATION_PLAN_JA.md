@@ -302,6 +302,83 @@ npm install --save-dev @cloudflare/workers-types wrangler
 }
 ```
 
+### Docker 設定の更新
+
+#### 新しい docker-compose.yml（SQLite Viewer）
+
+PostgreSQL + Adminer から SQLite + sqlite-web に変更します。
+
+```yaml
+# docker-compose.yml
+version: '3.8'
+
+services:
+  # SQLite Web Viewer - lightweight web-based SQLite database browser
+  sqlite-web:
+    image: coleifer/sqlite-web:latest
+    container_name: hono-drizzle-sqlite-web
+    ports:
+      - "8080:8080"
+    volumes:
+      # Mount the backend directory to access dev.db
+      - ./apps/backend:/data
+    command: ["-H", "0.0.0.0", "-x", "/data/dev.db"]
+    environment:
+      - SQLITE_DATABASE=/data/dev.db
+    restart: unless-stopped
+
+volumes:
+  # No volume needed as SQLite uses local file system
+  # The dev.db file is stored in apps/backend/dev.db
+```
+
+#### npm スクリプトの更新
+
+```json
+// package.json
+{
+  "scripts": {
+    "db:viewer": "docker compose up -d",
+    "db:viewer:down": "docker compose down",
+    "db:viewer:logs": "docker compose logs -f sqlite-web",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f sqlite-web",
+    "db:generate": "cd apps/backend && npx drizzle-kit generate",
+    "db:migrate": "cd apps/backend && npx tsx scripts/migrate.ts"
+  }
+}
+```
+
+#### .gitignore の更新
+
+```gitignore
+# SQLite database files
+*.db
+*.db-shm
+*.db-wal
+```
+
+#### 使用方法
+
+```bash
+# SQLite Viewer を起動
+npm run db:viewer
+
+# ブラウザで http://localhost:8080 にアクセス
+# dev.db の内容を GUI で確認・編集可能
+
+# Viewer を停止
+npm run db:viewer:down
+```
+
+#### SQLite Viewer の特徴
+
+- **軽量**: PostgreSQL + Adminer よりもリソース使用量が少ない
+- **シンプル**: SQLite ファイルを直接マウントするだけ
+- **機能豊富**: SQL クエリ実行、テーブル編集、データエクスポートなど
+- **互換性**: ローカル開発の dev.db と同じファイルを参照
+
 ---
 
 ## Phase 3: データ移行

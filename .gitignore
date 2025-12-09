@@ -5,3 +5,8 @@ apps/backend/drizzle
 apps/backend/dist
 coverage
 apps/backend/coverage
+
+# SQLite database files
+*.db
+*.db-shm
+*.db-wal

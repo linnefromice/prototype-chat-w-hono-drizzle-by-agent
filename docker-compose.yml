@@ -1,32 +1,20 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: hono-drizzle-postgres
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: app_db
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  adminer:
-    image: adminer:latest
-    container_name: hono-drizzle-adminer
+  # SQLite Web Viewer - lightweight web-based SQLite database browser
+  sqlite-web:
+    image: coleifer/sqlite-web:latest
+    container_name: hono-drizzle-sqlite-web
     ports:
       - "8080:8080"
+    volumes:
+      # Mount the backend directory to access dev.db
+      - ./apps/backend:/data
+    command: ["-H", "0.0.0.0", "-x", "/data/dev.db"]
     environment:
-      ADMINER_DEFAULT_SERVER: postgres
-    depends_on:
-      - postgres
+      - SQLITE_DATABASE=/data/dev.db
+    restart: unless-stopped
 
 volumes:
-  postgres_data:
+  # No volume needed as SQLite uses local file system
+  # The dev.db file is stored in apps/backend/dev.db
