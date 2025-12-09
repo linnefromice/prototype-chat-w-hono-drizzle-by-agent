@@ -13,7 +13,9 @@
     "paths": {
       "openapi": ["../../packages/openapi/dist/index.ts"],
       "openapi/*": ["../../packages/openapi/dist/*"]
-    }
+    },
+    "types": ["@cloudflare/workers-types"]
   },
-  "include": ["src"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.test.ts", "src/**/__tests__/**"]
 }
