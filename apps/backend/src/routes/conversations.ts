@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { ZodError } from 'zod'
 import {
   AddParticipantRequestSchema,
   CreateConversationRequestSchema,
@@ -17,6 +18,10 @@ const handleError = (error: unknown, c: any) => {
     return c.json({ message: error.message }, error.status)
   }
 
+  if (error instanceof ZodError) {
+    return c.json({ message: error.errors[0].message }, 400)
+  }
+
   throw error
 }
 
@@ -31,9 +36,8 @@ router.get('/', async c => {
 })
 
 router.post('/', async c => {
-  const payload = CreateConversationRequestSchema.parse(await c.req.json())
-
   try {
+    const payload = CreateConversationRequestSchema.parse(await c.req.json())
     const created = await chatUsecase.createConversation(payload)
     return c.json(created, 201)
   } catch (error) {
@@ -53,9 +57,9 @@ router.get('/:id', async c => {
 
 router.post('/:id/participants', async c => {
   const conversationId = c.req.param('id')
-  const payload = AddParticipantRequestSchema.parse(await c.req.json())
 
   try {
+    const payload = AddParticipantRequestSchema.parse(await c.req.json())
     const participant = await chatUsecase.addParticipant(conversationId, payload)
     await chatUsecase.createSystemMessage(conversationId, {
       senderUserId: null,
@@ -97,9 +101,9 @@ router.get('/:id/messages', async c => {
 
 router.post('/:id/messages', async c => {
   const conversationId = c.req.param('id')
-  const payload = SendMessageRequestSchema.parse(await c.req.json())
 
   try {
+    const payload = SendMessageRequestSchema.parse(await c.req.json())
     const created = await chatUsecase.sendMessage(conversationId, payload)
     return c.json(created, 201)
   } catch (error) {
@@ -109,9 +113,9 @@ router.post('/:id/messages', async c => {
 
 router.post('/:id/read', async c => {
   const conversationId = c.req.param('id')
-  const payload = UpdateConversationReadRequestSchema.parse(await c.req.json())
 
   try {
+    const payload = UpdateConversationReadRequestSchema.parse(await c.req.json())
     const read = await chatUsecase.markConversationRead(conversationId, payload)
     return c.json({ status: 'ok', read })
   } catch (error) {
