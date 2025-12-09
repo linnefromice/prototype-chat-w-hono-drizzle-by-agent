@@ -3,23 +3,22 @@ import app from '../app'
 import { expectValidZodSchema, expectValidZodSchemaArray } from '../__tests__/helpers/zodValidation'
 import { expectMatchesSnapshot } from '../__tests__/helpers/snapshotHelpers'
 import { getUsersResponseItem, getUsersUserIdResponse } from 'openapi'
-import { db, closeDbConnection } from '../infrastructure/db/client'
-import { sql } from 'drizzle-orm'
+import { db, closeDbConnection, sqlite } from '../infrastructure/db/client'
 
 describe('Users API', () => {
   beforeAll(() => {
     process.env.NODE_ENV = 'development'
   })
 
-  beforeEach(async () => {
+  beforeEach(() => {
     // Clean up database between tests (foreign key order matters)
-    await db.run(sql`DELETE FROM message_bookmarks`)
-    await db.run(sql`DELETE FROM reactions`)
-    await db.run(sql`DELETE FROM conversation_reads`)
-    await db.run(sql`DELETE FROM messages`)
-    await db.run(sql`DELETE FROM participants`)
-    await db.run(sql`DELETE FROM conversations`)
-    await db.run(sql`DELETE FROM users`)
+    sqlite.exec('DELETE FROM message_bookmarks')
+    sqlite.exec('DELETE FROM reactions')
+    sqlite.exec('DELETE FROM conversation_reads')
+    sqlite.exec('DELETE FROM messages')
+    sqlite.exec('DELETE FROM participants')
+    sqlite.exec('DELETE FROM conversations')
+    sqlite.exec('DELETE FROM users')
   })
 
   afterAll(async () => {

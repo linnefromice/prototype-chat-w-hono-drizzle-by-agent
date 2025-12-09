@@ -224,7 +224,7 @@ export class DrizzleChatRepository implements ChatRepository {
       .from(messages)
       .where(
         before
-          ? and(eq(messages.conversationId, conversationId), lt(messages.createdAt, new Date(before)))
+          ? and(eq(messages.conversationId, conversationId), lt(messages.createdAt, before))
           : eq(messages.conversationId, conversationId),
       )
       .orderBy(desc(messages.createdAt))
