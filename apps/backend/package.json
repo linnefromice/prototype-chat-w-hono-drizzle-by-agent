@@ -16,7 +16,10 @@
     "wrangler:deploy": "wrangler deploy",
     "d1:create": "wrangler d1 create prototype-hono-drizzle-db",
     "d1:execute": "wrangler d1 execute prototype-hono-drizzle-db --file=./migrations/schema.sql",
-    "d1:migrations:apply": "wrangler d1 migrations apply prototype-hono-drizzle-db"
+    "d1:migrations:apply": "wrangler d1 migrations apply prototype-hono-drizzle-db",
+    "docs:generate": "redocly build-docs ../../packages/openapi/openapi.yaml -o docs/index.html",
+    "docs:serve": "serve docs -p 8080",
+    "docs:dev": "npm run docs:generate && npm run docs:serve"
   },
   "dependencies": {
     "@hono/node-server": "^1.12.2",
@@ -31,10 +34,12 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20251209.0",
+    "@redocly/cli": "^2.12.5",
     "@types/node": "^22.7.4",
     "@vitest/coverage-v8": "^2.1.9",
     "@vitest/ui": "^2.0.5",
     "drizzle-kit": "^0.26.1",
+    "serve": "^14.2.5",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3",
     "vitest": "^2.0.5",
