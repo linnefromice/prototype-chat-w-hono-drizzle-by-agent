@@ -1,0 +1,28 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Users API > GET /users/:id > returns user by id > GET /users/:id - found user 1`] = `
+{
+  "avatarUrl": "https://example.com/findable.jpg",
+  "createdAt": "<DATETIME:1>",
+  "id": "<UUID:1>",
+  "name": "Findable User",
+}
+`;
+
+exports[`Users API > POST /users > creates a user with name and avatarUrl in development mode > POST /users - with name and avatarUrl 1`] = `
+{
+  "avatarUrl": "https://example.com/avatar.jpg",
+  "createdAt": "<DATETIME:1>",
+  "id": "<UUID:1>",
+  "name": "Test User",
+}
+`;
+
+exports[`Users API > POST /users > creates a user with only name > POST /users - with only name 1`] = `
+{
+  "avatarUrl": null,
+  "createdAt": "<DATETIME:1>",
+  "id": "<UUID:1>",
+  "name": "Test User 2",
+}
+`;

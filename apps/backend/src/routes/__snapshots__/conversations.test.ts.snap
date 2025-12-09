@@ -1,0 +1,68 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Conversations API > POST /conversations > creates a direct conversation with 2 participants > POST /conversations - direct conversation 1`] = `
+{
+  "createdAt": "<DATETIME:1>",
+  "id": "<UUID:1>",
+  "participants": [
+    {
+      "conversationId": "<UUID:1>",
+      "id": "<UUID:2>",
+      "joinedAt": "<DATETIME:2>",
+      "role": "member",
+      "userId": "<UUID:3>",
+    },
+    {
+      "conversationId": "<UUID:1>",
+      "id": "<UUID:4>",
+      "joinedAt": "<DATETIME:2>",
+      "role": "member",
+      "userId": "<UUID:5>",
+    },
+  ],
+  "type": "direct",
+}
+`;
+
+exports[`Conversations API > POST /conversations > creates a group conversation with name and 3+ participants > POST /conversations - group conversation 1`] = `
+{
+  "createdAt": "<DATETIME:1>",
+  "id": "<UUID:1>",
+  "name": "Test Group",
+  "participants": [
+    {
+      "conversationId": "<UUID:1>",
+      "id": "<UUID:2>",
+      "joinedAt": "<DATETIME:2>",
+      "role": "member",
+      "userId": "<UUID:3>",
+    },
+    {
+      "conversationId": "<UUID:1>",
+      "id": "<UUID:4>",
+      "joinedAt": "<DATETIME:2>",
+      "role": "member",
+      "userId": "<UUID:5>",
+    },
+    {
+      "conversationId": "<UUID:1>",
+      "id": "<UUID:6>",
+      "joinedAt": "<DATETIME:2>",
+      "role": "member",
+      "userId": "<UUID:7>",
+    },
+  ],
+  "type": "group",
+}
+`;
+
+exports[`Conversations API > POST /conversations/:id/messages > sends a text message to a conversation > POST /conversations/:id/messages - text message 1`] = `
+{
+  "conversationId": "<UUID:2>",
+  "createdAt": "<DATETIME:1>",
+  "id": "<UUID:1>",
+  "senderUserId": "<UUID:3>",
+  "text": "Hello, world!",
+  "type": "text",
+}
+`;
