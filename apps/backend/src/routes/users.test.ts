@@ -1,6 +1,7 @@
 import { describe, expect, it, beforeAll } from 'vitest'
 import app from '../app'
 import { expectValidZodSchema, expectValidZodSchemaArray } from '../__tests__/helpers/zodValidation'
+import { expectMatchesSnapshot } from '../__tests__/helpers/snapshotHelpers'
 import { getUsersResponseItem, getUsersUserIdResponse } from 'openapi'
 
 describe('Users API', () => {
@@ -65,6 +66,9 @@ describe('Users API', () => {
       // Zod schema validation
       expectValidZodSchema(getUsersUserIdResponse, user, 'user')
 
+      // Snapshot testing - captures complete response structure
+      expectMatchesSnapshot(user, 'POST /users - with name and avatarUrl')
+
       // Business logic assertions
       expect(user.name).toBe('Test User')
       expect(user.avatarUrl).toBe('https://example.com/avatar.jpg')
@@ -85,6 +89,9 @@ describe('Users API', () => {
 
       // Zod schema validation
       expectValidZodSchema(getUsersUserIdResponse, user, 'user')
+
+      // Snapshot testing - captures complete response structure
+      expectMatchesSnapshot(user, 'POST /users - with only name')
 
       // Business logic assertions
       expect(user.name).toBe('Test User 2')
@@ -147,6 +154,9 @@ describe('Users API', () => {
 
       // Zod schema validation
       expectValidZodSchema(getUsersUserIdResponse, user, 'user')
+
+      // Snapshot testing - captures complete response structure
+      expectMatchesSnapshot(user, 'GET /users/:id - found user')
 
       // Business logic assertions
       expect(user.id).toBe(createdUser.id)

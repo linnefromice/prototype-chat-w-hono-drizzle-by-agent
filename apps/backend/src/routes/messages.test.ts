@@ -1,6 +1,7 @@
 import { describe, expect, it, beforeAll } from 'vitest'
 import app from '../app'
 import { expectValidZodSchema, expectValidZodSchemaArray } from '../__tests__/helpers/zodValidation'
+import { expectMatchesSnapshot } from '../__tests__/helpers/snapshotHelpers'
 import {
   deleteMessagesIdReactionsEmojiResponse,
   deleteMessagesIdBookmarksResponse,
@@ -87,6 +88,9 @@ describe('Messages API', () => {
 
       // Zod schema validation
       expectValidZodSchema(deleteMessagesIdReactionsEmojiResponse, reaction, 'reaction')
+
+      // Snapshot testing - captures complete reaction structure
+      expectMatchesSnapshot(reaction, 'POST /messages/:id/reactions - add reaction')
 
       // Business logic assertions
       expect(reaction.messageId).toBe(message.id)
@@ -262,6 +266,9 @@ describe('Messages API', () => {
 
       // Zod schema validation
       expectValidZodSchema(postMessagesIdBookmarksResponse, result, 'bookmark response')
+
+      // Snapshot testing - captures complete bookmark response structure
+      expectMatchesSnapshot(result, 'POST /messages/:id/bookmarks - bookmark message')
 
       // Business logic assertions
       expect(result.status).toBe('bookmarked')

@@ -1,0 +1,23 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Messages API > POST /messages/:id/bookmarks > bookmarks a message > POST /messages/:id/bookmarks - bookmark message 1`] = `
+{
+  "bookmark": {
+    "createdAt": "<DATETIME:1>",
+    "id": "<UUID:1>",
+    "messageId": "<UUID:2>",
+    "userId": "<UUID:3>",
+  },
+  "status": "bookmarked",
+}
+`;
+
+exports[`Messages API > POST /messages/:id/reactions > adds a reaction to a message > POST /messages/:id/reactions - add reaction 1`] = `
+{
+  "createdAt": "<DATETIME:1>",
+  "emoji": "👍",
+  "id": "<UUID:1>",
+  "messageId": "<UUID:2>",
+  "userId": "<UUID:3>",
+}
+`;

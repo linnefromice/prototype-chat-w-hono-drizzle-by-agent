@@ -2,6 +2,7 @@ import { describe, expect, it, beforeAll } from 'vitest'
 import { ZodError } from 'zod'
 import app from '../app'
 import { expectValidZodSchema, expectValidZodSchemaArray } from '../__tests__/helpers/zodValidation'
+import { expectMatchesSnapshot, expectNestedSnapshot } from '../__tests__/helpers/snapshotHelpers'
 import {
   getConversationsIdResponse,
   getConversationsResponseItem,
@@ -49,6 +50,9 @@ describe('Conversations API', () => {
       // Zod schema validation ensures complete response structure
       expectValidZodSchema(getConversationsIdResponse, conversation, 'conversation')
 
+      // Snapshot testing - captures complete nested structure
+      expectNestedSnapshot(conversation, 'POST /conversations - direct conversation')
+
       // Additional business logic assertions
       expect(conversation.type).toBe('direct')
       expect(conversation.name == null).toBe(true)
@@ -77,6 +81,9 @@ describe('Conversations API', () => {
 
       // Zod schema validation
       expectValidZodSchema(getConversationsIdResponse, conversation, 'conversation')
+
+      // Snapshot testing - captures complete nested structure
+      expectNestedSnapshot(conversation, 'POST /conversations - group conversation')
 
       // Business logic assertions
       expect(conversation.type).toBe('group')
@@ -593,6 +600,9 @@ describe('Conversations API', () => {
 
       // Zod schema validation
       expectValidZodSchema(getConversationsIdMessagesResponseItem, message, 'message')
+
+      // Snapshot testing - captures complete message structure
+      expectMatchesSnapshot(message, 'POST /conversations/:id/messages - text message')
 
       // Business logic assertions
       expect(message.conversationId).toBe(conversation.id)
