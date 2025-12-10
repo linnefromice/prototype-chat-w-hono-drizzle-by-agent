@@ -9,9 +9,9 @@ import {
 import { DrizzleChatRepository } from '../repositories/drizzleChatRepository'
 import { ChatUsecase } from '../usecases/chatUsecase'
 import { HttpError } from '../utils/errors'
+import { getDbClient } from '../utils/dbClient'
 
 const router = new Hono()
-const chatUsecase = new ChatUsecase(new DrizzleChatRepository())
 
 const handleError = (error: unknown, c: any) => {
   if (error instanceof HttpError) {

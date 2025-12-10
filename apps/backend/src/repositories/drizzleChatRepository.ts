@@ -15,7 +15,8 @@ import type {
   SendMessageRequest,
   UpdateConversationReadRequest,
 } from 'openapi'
-import { db } from '../infrastructure/db/client'
+import type { DrizzleD1Database } from 'drizzle-orm/d1'
+import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3'
 import {
   conversationReads,
   conversations,
@@ -86,8 +87,12 @@ const mapBookmark = (row: typeof messageBookmarks.$inferSelect): Bookmark => ({
   createdAt: row.createdAt,
 })
 
+type DbClient = DrizzleD1Database<any> | BetterSQLite3Database<any>
+
 export class DrizzleChatRepository implements ChatRepository {
-  constructor(private readonly client = db) {}
+  constructor(private readonly client?: DbClient) {
+    // Client will be injected from context in Workers environment
+  }
 
   async createConversation(data: CreateConversationRequest): Promise<ConversationDetail> {
     const [conversationRow] = await this.client

@@ -7,10 +7,9 @@ import { ChatUsecase } from '../usecases/chatUsecase'
 import { UserUsecase } from '../usecases/userUsecase'
 import { HttpError } from '../utils/errors'
 import { devOnly } from '../middleware/devOnly'
+import { getDbClient } from '../utils/dbClient'
 
 const router = new Hono()
-const chatUsecase = new ChatUsecase(new DrizzleChatRepository())
-const userUsecase = new UserUsecase(new DrizzleUserRepository())
 
 const handleError = (error: unknown, c: any) => {
   if (error instanceof HttpError) {
@@ -22,6 +21,8 @@ const handleError = (error: unknown, c: any) => {
 
 router.get('/', devOnly, async c => {
   try {
+    const db = await getDbClient(c)
+    const userUsecase = new UserUsecase(new DrizzleUserRepository(db))
     const users = await userUsecase.listAllUsers()
     return c.json(users)
   } catch (error) {
@@ -31,6 +32,8 @@ router.get('/', devOnly, async c => {
 
 router.post('/', devOnly, async c => {
   try {
+    const db = await getDbClient(c)
+    const userUsecase = new UserUsecase(new DrizzleUserRepository(db))
     const body = await c.req.json()
     const payload = CreateUserRequestSchema.parse(body)
 
@@ -56,6 +59,8 @@ router.get('/:id', async c => {
   const userId = c.req.param('id')
 
   try {
+    const db = await getDbClient(c)
+    const userUsecase = new UserUsecase(new DrizzleUserRepository(db))
     const user = await userUsecase.getUserById(userId)
     return c.json(user)
   } catch (error) {
@@ -67,6 +72,8 @@ router.get('/:id/bookmarks', async c => {
   const userId = c.req.param('id')
 
   try {
+    const db = await getDbClient(c)
+    const chatUsecase = new ChatUsecase(new DrizzleChatRepository(db))
     const bookmarks = await chatUsecase.listBookmarks(userId)
     return c.json(bookmarks)
   } catch (error) {

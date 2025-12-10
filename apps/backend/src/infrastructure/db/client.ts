@@ -1,9 +1,9 @@
 import { drizzle } from 'drizzle-orm/better-sqlite3'
 import Database from 'better-sqlite3'
 import * as schema from './schema'
-import { loadEnvConfig } from '../../utils/env'
 
-const env = loadEnvConfig()
+// Note: This file is only used in Local/Test environments
+// Workers environment uses client.d1.ts instead
 
 // Determine the database file path
 // Use in-memory database for tests, file-based for development
