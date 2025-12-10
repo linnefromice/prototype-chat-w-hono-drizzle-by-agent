@@ -7,7 +7,7 @@ compatibility_flags = ["nodejs_compat"]
 [[d1_databases]]
 binding = "DB"
 database_name = "prototype-hono-drizzle-db"
-database_id = "eee82e9d-d1d1-4397-ae9f-58bb02b774bf" # To be filled when creating the D1 database
+database_id = "59d1bb59-6480-433f-9f7d-3f24330873cc" # To be filled when creating the D1 database
 
 # For local development
 [env.dev]
