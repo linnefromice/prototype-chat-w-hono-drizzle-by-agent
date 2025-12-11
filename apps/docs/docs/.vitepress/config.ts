@@ -4,7 +4,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: 'Prototype Hono Drizzle API',
   description: 'API Documentation and Snapshot Testing Results',
-  base: '/prototype-hono-drizzle-codex/',
+  base: '/prototype-chat-w-hono-drizzle-by-agent/',
 
   themeConfig: {
     nav: [
@@ -48,7 +48,7 @@ export default defineConfig({
     },
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/linnefromice/prototype-hono-drizzle-codex' },
+      { icon: 'github', link: 'https://github.com/linnefromice/prototype-chat-w-hono-drizzle-by-agent' },
     ],
 
     footer: {
