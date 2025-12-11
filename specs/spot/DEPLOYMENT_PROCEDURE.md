@@ -5,6 +5,10 @@
 ## 目次
 
 - [前提条件](#前提条件)
+- [CI/CD による自動デプロイ](#cicd-による自動デプロイ)
+  - [GitHub Actions の設定](#github-actions-の設定)
+  - [自動デプロイの動作](#自動デプロイの動作)
+  - [手動デプロイの実行](#手動デプロイの実行)
 - [初期構築](#初期構築)
   - [1. 初期構築: D1 データベース](#1-初期構築-d1-データベース)
   - [2. 初期構築: Workers API](#2-初期構築-workers-api)
@@ -23,6 +27,135 @@
 - Node.js (v18 以上推奨)
 - npm または yarn
 - Cloudflare アカウント
+
+---
+
+## CI/CD による自動デプロイ
+
+GitHub Actions を使用して、D1 データベースと Workers を自動的にデプロイできます。
+
+### GitHub Actions の設定
+
+#### 必要な GitHub Secrets
+
+リポジトリの Settings > Secrets and variables > Actions で以下のシークレットを設定します：
+
+1. **CLOUDFLARE_API_TOKEN**
+   - Cloudflare ダッシュボードで作成: https://dash.cloudflare.com/profile/api-tokens
+   - 必要な権限:
+     - `Workers Scripts:Edit`
+     - `D1:Edit`
+   - 作成手順:
+     ```
+     1. Cloudflare ダッシュボードにログイン
+     2. My Profile > API Tokens を選択
+     3. "Create Token" をクリック
+     4. "Edit Cloudflare Workers" テンプレートを選択
+     5. 権限に "D1:Edit" を追加
+     6. "Continue to summary" > "Create Token"
+     7. トークンをコピーして GitHub Secrets に追加
+     ```
+
+2. **CLOUDFLARE_ACCOUNT_ID**
+   - Cloudflare ダッシュボードで確認: https://dash.cloudflare.com/
+   - Workers & Pages のページに表示される Account ID をコピー
+   - または wrangler で確認: `npx wrangler whoami`
+
+---
+
+### 自動デプロイの動作
+
+`.github/workflows/deploy-workers.yml` ワークフローは以下の条件で自動実行されます：
+
+**トリガー条件**:
+- `main` ブランチへのプッシュ（以下のパスに変更があった場合）
+  - `apps/backend/**`
+  - `packages/openapi/**`
+  - `.github/workflows/deploy-workers.yml`
+
+**実行内容**:
+1. 依存パッケージのインストール
+2. TypeScript ビルド
+3. D1 マイグレーションの適用（リモート）
+4. シードデータの投入（users のみ、既存データがあればスキップ）
+5. Workers へのデプロイ
+6. デプロイサマリーの表示
+
+**デプロイフロー例**:
+```
+git commit -m "Update user API"
+git push origin main
+↓
+GitHub Actions が自動実行
+↓
+D1 マイグレーション適用
+↓
+Workers デプロイ
+↓
+本番環境に反映
+```
+
+---
+
+### 手動デプロイの実行
+
+GitHub Actions UI から手動でデプロイを実行することもできます。
+
+**手順**:
+1. GitHub リポジトリの「Actions」タブを開く
+2. 「Deploy to Cloudflare Workers」ワークフローを選択
+3. 「Run workflow」をクリック
+4. 環境を選択（production または dev）
+5. 「Run workflow」を実行
+
+**メリット**:
+- コードを変更せずにデプロイ可能
+- 環境を明示的に選択できる
+- リリースタイミングを制御できる
+
+---
+
+### CI/CD のトラブルシューティング
+
+#### ワークフローが失敗する
+
+**原因 1: API トークンが無効**
+```
+Error: Authentication error
+```
+**解決策**:
+- `CLOUDFLARE_API_TOKEN` を再生成して更新
+- トークンの権限を確認（Workers Scripts:Edit, D1:Edit）
+
+**原因 2: Account ID が間違っている**
+```
+Error: Could not find account
+```
+**解決策**:
+- `CLOUDFLARE_ACCOUNT_ID` を確認して更新
+- `npx wrangler whoami` で正しい ID を取得
+
+**原因 3: マイグレーションファイルが見つからない**
+```
+Error: ENOENT: no such file or directory
+```
+**解決策**:
+- マイグレーションファイルが `drizzle/` ディレクトリに存在することを確認
+- ファイル名が正しいか確認
+
+---
+
+#### デプロイは成功するがアクセスできない
+
+**原因**: D1 バインディングが設定されていない
+
+**解決策**:
+1. `wrangler.toml` の `database_id` を確認
+2. D1 データベースが作成されているか確認:
+   ```bash
+   npx wrangler d1 list
+   ```
+3. 必要に応じてデータベースを作成し、`wrangler.toml` を更新
 
 ---
 
