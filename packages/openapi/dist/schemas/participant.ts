@@ -5,6 +5,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ParticipantRole } from "./participantRole";
+import type { User } from "./user";
 
 export interface Participant {
   id: string;
@@ -14,4 +15,5 @@ export interface Participant {
   joinedAt: string;
   /** @nullable */
   leftAt?: string | null;
+  user: User;
 }

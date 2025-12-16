@@ -37,6 +37,11 @@ export const getConversationsQueryParams = zod.object({
   userId: zod.string().uuid(),
 });
 
+export const getConversationsResponseParticipantsItemUserIdAliasMin = 3;
+export const getConversationsResponseParticipantsItemUserIdAliasMax = 30;
+export const getConversationsResponseParticipantsItemUserIdAliasRegExp =
+  new RegExp("^[a-z0-9][a-z0-9._-]*[a-z0-9]$");
+
 export const getConversationsResponseItem = zod
   .object({
     id: zod.string().uuid(),
@@ -50,10 +55,24 @@ export const getConversationsResponseItem = zod
         zod.object({
           id: zod.string().uuid(),
           conversationId: zod.string().uuid(),
-          userId: zod.string().uuid(),
+          userId: zod.string(),
           role: zod.enum(["member", "admin"]),
           joinedAt: zod.string().datetime({}),
           leftAt: zod.string().datetime({}).nullish(),
+          user: zod.object({
+            id: zod.string().uuid(),
+            idAlias: zod
+              .string()
+              .min(getConversationsResponseParticipantsItemUserIdAliasMin)
+              .max(getConversationsResponseParticipantsItemUserIdAliasMax)
+              .regex(getConversationsResponseParticipantsItemUserIdAliasRegExp)
+              .describe(
+                "Unique human-readable identifier for login and display. Must start and end with lowercase letter or number. Only lowercase letters, numbers, dots, underscores, and hyphens allowed. No spaces."
+              ),
+            name: zod.string(),
+            avatarUrl: zod.string().nullish(),
+            createdAt: zod.string().datetime({}),
+          }),
         })
       ),
     })
@@ -76,6 +95,11 @@ export const getConversationsIdParams = zod.object({
   id: zod.string().uuid(),
 });
 
+export const getConversationsIdResponseParticipantsItemUserIdAliasMin = 3;
+export const getConversationsIdResponseParticipantsItemUserIdAliasMax = 30;
+export const getConversationsIdResponseParticipantsItemUserIdAliasRegExp =
+  new RegExp("^[a-z0-9][a-z0-9._-]*[a-z0-9]$");
+
 export const getConversationsIdResponse = zod
   .object({
     id: zod.string().uuid(),
@@ -89,10 +113,26 @@ export const getConversationsIdResponse = zod
         zod.object({
           id: zod.string().uuid(),
           conversationId: zod.string().uuid(),
-          userId: zod.string().uuid(),
+          userId: zod.string(),
           role: zod.enum(["member", "admin"]),
           joinedAt: zod.string().datetime({}),
           leftAt: zod.string().datetime({}).nullish(),
+          user: zod.object({
+            id: zod.string().uuid(),
+            idAlias: zod
+              .string()
+              .min(getConversationsIdResponseParticipantsItemUserIdAliasMin)
+              .max(getConversationsIdResponseParticipantsItemUserIdAliasMax)
+              .regex(
+                getConversationsIdResponseParticipantsItemUserIdAliasRegExp
+              )
+              .describe(
+                "Unique human-readable identifier for login and display. Must start and end with lowercase letter or number. Only lowercase letters, numbers, dots, underscores, and hyphens allowed. No spaces."
+              ),
+            name: zod.string(),
+            avatarUrl: zod.string().nullish(),
+            createdAt: zod.string().datetime({}),
+          }),
         })
       ),
     })
@@ -118,13 +158,32 @@ export const deleteConversationsIdParticipantsUserIdParams = zod.object({
   userId: zod.string().uuid(),
 });
 
+export const deleteConversationsIdParticipantsUserIdResponseUserIdAliasMin = 3;
+export const deleteConversationsIdParticipantsUserIdResponseUserIdAliasMax = 30;
+export const deleteConversationsIdParticipantsUserIdResponseUserIdAliasRegExp =
+  new RegExp("^[a-z0-9][a-z0-9._-]*[a-z0-9]$");
+
 export const deleteConversationsIdParticipantsUserIdResponse = zod.object({
   id: zod.string().uuid(),
   conversationId: zod.string().uuid(),
-  userId: zod.string().uuid(),
+  userId: zod.string(),
   role: zod.enum(["member", "admin"]),
   joinedAt: zod.string().datetime({}),
   leftAt: zod.string().datetime({}).nullish(),
+  user: zod.object({
+    id: zod.string().uuid(),
+    idAlias: zod
+      .string()
+      .min(deleteConversationsIdParticipantsUserIdResponseUserIdAliasMin)
+      .max(deleteConversationsIdParticipantsUserIdResponseUserIdAliasMax)
+      .regex(deleteConversationsIdParticipantsUserIdResponseUserIdAliasRegExp)
+      .describe(
+        "Unique human-readable identifier for login and display. Must start and end with lowercase letter or number. Only lowercase letters, numbers, dots, underscores, and hyphens allowed. No spaces."
+      ),
+    name: zod.string(),
+    avatarUrl: zod.string().nullish(),
+    createdAt: zod.string().datetime({}),
+  }),
 });
 
 /**
@@ -278,8 +337,22 @@ export const deleteMessagesIdBookmarksResponse = zod.object({
  * Get a list of all users. Only available in development mode.
  * @summary List all users (development only)
  */
+export const getUsersResponseIdAliasMin = 3;
+export const getUsersResponseIdAliasMax = 30;
+export const getUsersResponseIdAliasRegExp = new RegExp(
+  "^[a-z0-9][a-z0-9._-]*[a-z0-9]$"
+);
+
 export const getUsersResponseItem = zod.object({
   id: zod.string().uuid(),
+  idAlias: zod
+    .string()
+    .min(getUsersResponseIdAliasMin)
+    .max(getUsersResponseIdAliasMax)
+    .regex(getUsersResponseIdAliasRegExp)
+    .describe(
+      "Unique human-readable identifier for login and display. Must start and end with lowercase letter or number. Only lowercase letters, numbers, dots, underscores, and hyphens allowed. No spaces."
+    ),
   name: zod.string(),
   avatarUrl: zod.string().nullish(),
   createdAt: zod.string().datetime({}),
@@ -290,7 +363,21 @@ export const getUsersResponse = zod.array(getUsersResponseItem);
  * Creates a new user. Only available in development mode.
  * @summary Create user (development only)
  */
+export const postUsersBodyIdAliasMin = 3;
+export const postUsersBodyIdAliasMax = 30;
+export const postUsersBodyIdAliasRegExp = new RegExp(
+  "^[a-z0-9][a-z0-9._-]*[a-z0-9]$"
+);
+
 export const postUsersBody = zod.object({
+  idAlias: zod
+    .string()
+    .min(postUsersBodyIdAliasMin)
+    .max(postUsersBodyIdAliasMax)
+    .regex(postUsersBodyIdAliasRegExp)
+    .describe(
+      "Unique human-readable identifier. Only lowercase letters, numbers, dots, underscores, and hyphens allowed. No spaces."
+    ),
   name: zod.string().min(1),
   avatarUrl: zod.string().nullish(),
 });
@@ -302,8 +389,22 @@ export const getUsersUserIdParams = zod.object({
   userId: zod.string().uuid(),
 });
 
+export const getUsersUserIdResponseIdAliasMin = 3;
+export const getUsersUserIdResponseIdAliasMax = 30;
+export const getUsersUserIdResponseIdAliasRegExp = new RegExp(
+  "^[a-z0-9][a-z0-9._-]*[a-z0-9]$"
+);
+
 export const getUsersUserIdResponse = zod.object({
   id: zod.string().uuid(),
+  idAlias: zod
+    .string()
+    .min(getUsersUserIdResponseIdAliasMin)
+    .max(getUsersUserIdResponseIdAliasMax)
+    .regex(getUsersUserIdResponseIdAliasRegExp)
+    .describe(
+      "Unique human-readable identifier for login and display. Must start and end with lowercase letter or number. Only lowercase letters, numbers, dots, underscores, and hyphens allowed. No spaces."
+    ),
   name: zod.string(),
   avatarUrl: zod.string().nullish(),
   createdAt: zod.string().datetime({}),
@@ -326,6 +427,45 @@ export const getUsersUserIdBookmarksResponseItem = zod.object({
 export const getUsersUserIdBookmarksResponse = zod.array(
   getUsersUserIdBookmarksResponseItem
 );
+
+/**
+ * Authenticate and retrieve user information by their unique ID alias
+ * @summary Login user by ID alias
+ */
+export const postUsersLoginBodyIdAliasMin = 3;
+export const postUsersLoginBodyIdAliasMax = 30;
+export const postUsersLoginBodyIdAliasRegExp = new RegExp(
+  "^[a-z0-9][a-z0-9._-]*[a-z0-9]$"
+);
+
+export const postUsersLoginBody = zod.object({
+  idAlias: zod
+    .string()
+    .min(postUsersLoginBodyIdAliasMin)
+    .max(postUsersLoginBodyIdAliasMax)
+    .regex(postUsersLoginBodyIdAliasRegExp),
+});
+
+export const postUsersLoginResponseIdAliasMin = 3;
+export const postUsersLoginResponseIdAliasMax = 30;
+export const postUsersLoginResponseIdAliasRegExp = new RegExp(
+  "^[a-z0-9][a-z0-9._-]*[a-z0-9]$"
+);
+
+export const postUsersLoginResponse = zod.object({
+  id: zod.string().uuid(),
+  idAlias: zod
+    .string()
+    .min(postUsersLoginResponseIdAliasMin)
+    .max(postUsersLoginResponseIdAliasMax)
+    .regex(postUsersLoginResponseIdAliasRegExp)
+    .describe(
+      "Unique human-readable identifier for login and display. Must start and end with lowercase letter or number. Only lowercase letters, numbers, dots, underscores, and hyphens allowed. No spaces."
+    ),
+  name: zod.string(),
+  avatarUrl: zod.string().nullish(),
+  createdAt: zod.string().datetime({}),
+});
 
 // Re-export Zod schemas for request validation
 export { postItemsBody as CreateItemRequestSchema };

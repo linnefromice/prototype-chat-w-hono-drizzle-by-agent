@@ -6,6 +6,13 @@
  */
 
 export interface CreateUserRequest {
+  /**
+   * Unique human-readable identifier. Only lowercase letters, numbers, dots, underscores, and hyphens allowed. No spaces.
+   * @minLength 3
+   * @maxLength 30
+   * @pattern ^[a-z0-9][a-z0-9._-]*[a-z0-9]$
+   */
+  idAlias: string;
   /** @minLength 1 */
   name: string;
   /** @nullable */

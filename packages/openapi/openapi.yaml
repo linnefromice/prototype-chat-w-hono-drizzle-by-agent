@@ -412,6 +412,27 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/BookmarkListItem'
+  /users/login:
+    post:
+      summary: Login user by ID alias
+      description: Authenticate and retrieve user information by their unique ID alias
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Bad request - invalid idAlias format
+        '404':
+          description: User not found
 components:
   schemas:
     HealthResponse:
@@ -446,6 +467,12 @@ components:
     CreateUserRequest:
       type: object
       properties:
+        idAlias:
+          type: string
+          pattern: '^[a-z0-9][a-z0-9._-]*[a-z0-9]$'
+          minLength: 3
+          maxLength: 30
+          description: 'Unique human-readable identifier. Only lowercase letters, numbers, dots, underscores, and hyphens allowed. No spaces.'
         name:
           type: string
           minLength: 1
@@ -453,6 +480,7 @@ components:
           type: string
           nullable: true
       required:
+        - idAlias
         - name
     User:
       type: object
@@ -460,6 +488,12 @@ components:
         id:
           type: string
           format: uuid
+        idAlias:
+          type: string
+          pattern: '^[a-z0-9][a-z0-9._-]*[a-z0-9]$'
+          minLength: 3
+          maxLength: 30
+          description: 'Unique human-readable identifier for login and display. Must start and end with lowercase letter or number. Only lowercase letters, numbers, dots, underscores, and hyphens allowed. No spaces.'
         name:
           type: string
         avatarUrl:
@@ -470,6 +504,7 @@ components:
           format: date-time
       required:
         - id
+        - idAlias
         - name
         - createdAt
     Participant:
@@ -483,7 +518,6 @@ components:
           format: uuid
         userId:
           type: string
-          format: uuid
         role:
           type: string
           enum: [member, admin]
@@ -494,12 +528,15 @@ components:
           type: string
           format: date-time
           nullable: true
+        user:
+          $ref: '#/components/schemas/User'
       required:
         - id
         - conversationId
         - userId
         - role
         - joinedAt
+        - user
     Conversation:
       type: object
       properties:
@@ -774,3 +811,13 @@ components:
         - conversationId
         - createdAt
         - messageCreatedAt
+    LoginRequest:
+      type: object
+      properties:
+        idAlias:
+          type: string
+          pattern: '^[a-z0-9][a-z0-9._-]*[a-z0-9]$'
+          minLength: 3
+          maxLength: 30
+      required:
+        - idAlias

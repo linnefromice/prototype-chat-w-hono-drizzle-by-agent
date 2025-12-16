@@ -7,6 +7,13 @@
 
 export interface User {
   id: string;
+  /**
+   * Unique human-readable identifier for login and display. Must start and end with lowercase letter or number. Only lowercase letters, numbers, dots, underscores, and hyphens allowed. No spaces.
+   * @minLength 3
+   * @maxLength 30
+   * @pattern ^[a-z0-9][a-z0-9._-]*[a-z0-9]$
+   */
+  idAlias: string;
   name: string;
   /** @nullable */
   avatarUrl?: string | null;
