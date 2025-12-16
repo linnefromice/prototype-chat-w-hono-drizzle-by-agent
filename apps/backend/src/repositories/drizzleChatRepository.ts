@@ -137,6 +137,7 @@ export class DrizzleChatRepository implements ChatRepository {
       .from(participants)
       .innerJoin(users, eq(participants.userId, users.id))
       .where(eq(participants.conversationId, conversationRow.id))
+      .orderBy(participants.joinedAt, participants.userId)
 
     const participantList = participantWithUserRows.map(row =>
       mapParticipant(row.participants, row.users),
@@ -159,6 +160,7 @@ export class DrizzleChatRepository implements ChatRepository {
       .from(participants)
       .innerJoin(users, eq(participants.userId, users.id))
       .where(eq(participants.conversationId, conversationId))
+      .orderBy(participants.joinedAt, participants.userId)
 
     const participantList = participantWithUserRows.map(row =>
       mapParticipant(row.participants, row.users),
@@ -186,6 +188,7 @@ export class DrizzleChatRepository implements ChatRepository {
       .from(participants)
       .innerJoin(users, eq(participants.userId, users.id))
       .where(inArray(participants.conversationId, conversationIds))
+      .orderBy(participants.joinedAt, participants.userId)
 
     const participantMap = participantWithUserRows.reduce<Map<string, Participant[]>>(
       (acc, row) => {
