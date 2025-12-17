@@ -234,6 +234,24 @@ export const postConversationsIdMessagesBody = zod.object({
 });
 
 /**
+ * @summary Get reactions for a message
+ */
+export const getMessagesIdReactionsParams = zod.object({
+  id: zod.string().uuid(),
+});
+
+export const getMessagesIdReactionsResponseItem = zod.object({
+  id: zod.string().uuid(),
+  messageId: zod.string().uuid(),
+  userId: zod.string().uuid(),
+  emoji: zod.string(),
+  createdAt: zod.string().datetime({}),
+});
+export const getMessagesIdReactionsResponse = zod.array(
+  getMessagesIdReactionsResponseItem
+);
+
+/**
  * @summary Add reaction to message
  */
 export const postMessagesIdReactionsParams = zod.object({

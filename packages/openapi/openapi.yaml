@@ -200,6 +200,26 @@ paths:
               schema:
                 $ref: '#/components/schemas/Message'
   /messages/{id}/reactions:
+    get:
+      summary: Get reactions for a message
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of reactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Reaction'
+        '404':
+          description: Message not found
     post:
       summary: Add reaction to message
       parameters:

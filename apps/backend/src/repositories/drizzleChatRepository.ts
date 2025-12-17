@@ -342,6 +342,15 @@ export class DrizzleChatRepository implements ChatRepository {
     return reactionRow ? mapReaction(reactionRow) : null
   }
 
+  async listReactions(messageId: string): Promise<Reaction[]> {
+    const reactionRows = await this.client
+      .select()
+      .from(reactions)
+      .where(eq(reactions.messageId, messageId))
+
+    return reactionRows.map(mapReaction)
+  }
+
   async updateConversationRead(
     conversationId: string,
     data: UpdateConversationReadRequest,

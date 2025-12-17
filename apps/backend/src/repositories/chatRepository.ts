@@ -37,6 +37,7 @@ export interface ChatRepository {
 
   addReaction(messageId: string, data: ReactionRequest): Promise<Reaction>
   removeReaction(messageId: string, emoji: string, userId: string): Promise<Reaction | null>
+  listReactions(messageId: string): Promise<Reaction[]>
 
   updateConversationRead(
     conversationId: string,

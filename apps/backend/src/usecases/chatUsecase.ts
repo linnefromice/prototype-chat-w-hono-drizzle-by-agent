@@ -120,6 +120,15 @@ export class ChatUsecase {
     return removed
   }
 
+  async listReactions(messageId: string): Promise<Reaction[]> {
+    const message = await this.repo.findMessageById(messageId)
+    if (!message) {
+      throw new HttpError(404, 'Message not found')
+    }
+
+    return this.repo.listReactions(messageId)
+  }
+
   async markConversationRead(
     conversationId: string,
     data: UpdateConversationReadRequest,

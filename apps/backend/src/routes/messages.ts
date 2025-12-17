@@ -20,6 +20,19 @@ const handleError = (error: unknown, c: any) => {
   return c.json({ message }, 500)
 }
 
+router.get('/:id/reactions', async c => {
+  const messageId = c.req.param('id')
+
+  try {
+    const db = await getDbClient(c)
+    const chatUsecase = new ChatUsecase(new DrizzleChatRepository(db))
+    const reactions = await chatUsecase.listReactions(messageId)
+    return c.json(reactions)
+  } catch (error) {
+    return handleError(error, c)
+  }
+})
+
 router.post('/:id/reactions', async c => {
   const messageId = c.req.param('id')
   const payload = ReactionRequestSchema.parse(await c.req.json())

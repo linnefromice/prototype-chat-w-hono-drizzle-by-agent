@@ -1,5 +1,33 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`Messages API > GET /messages/:id/reactions > returns all reactions for a message > GET /messages/:id/reactions - multiple reactions 1`] = `
+[
+  {
+    "createdAt": "<DATETIME:1>",
+    "emoji": "❤️",
+    "id": "<UUID:1>",
+    "messageId": "<UUID:2>",
+    "userId": "<UUID:3>",
+  },
+  {
+    "createdAt": "<DATETIME:2>",
+    "emoji": "👍",
+    "id": "<UUID:4>",
+    "messageId": "<UUID:2>",
+    "userId": "<UUID:3>",
+  },
+  {
+    "createdAt": "<DATETIME:3>",
+    "emoji": "🎉",
+    "id": "<UUID:5>",
+    "messageId": "<UUID:2>",
+    "userId": "<UUID:6>",
+  },
+]
+`;
+
+exports[`Messages API > GET /messages/:id/reactions > returns empty array when no reactions > GET /messages/:id/reactions - empty array 1`] = `[]`;
+
 exports[`Messages API > POST /messages/:id/bookmarks > bookmarks a message > POST /messages/:id/bookmarks - bookmark message 1`] = `
 {
   "bookmark": {

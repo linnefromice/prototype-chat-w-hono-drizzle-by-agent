@@ -6,6 +6,7 @@ import {
   deleteMessagesIdReactionsEmojiResponse,
   deleteMessagesIdBookmarksResponse,
   getUsersUserIdBookmarksResponseItem,
+  getMessagesIdReactionsResponse,
 } from 'openapi'
 import zod from 'zod'
 import { db, closeDbConnection, sqlite } from '../infrastructure/db/client'
@@ -257,6 +258,102 @@ describe('Messages API', () => {
           method: 'DELETE',
         }
       )
+
+      expect(response.status).toBe(404)
+    })
+  })
+
+  describe('GET /messages/:id/reactions', () => {
+    it('returns empty array when no reactions', async () => {
+      const user1 = await createUser('User 1', 'user1')
+      const user2 = await createUser('User 2', 'user2')
+
+      const conversation = await createConversation([user1.id, user2.id])
+      const message = await sendMessage(conversation.id, user1.id, 'Hello!')
+
+      const response = await app.request(`/messages/${message.id}/reactions`, {
+        method: 'GET',
+      })
+
+      expect(response.status).toBe(200)
+
+      const reactions = await response.json()
+
+      // Zod schema validation
+      expectValidZodSchema(getMessagesIdReactionsResponse, reactions, 'reactions')
+
+      // Snapshot testing
+      expectMatchesSnapshot(reactions, 'GET /messages/:id/reactions - empty array')
+
+      // Business logic assertions
+      expect(reactions).toEqual([])
+    })
+
+    it('returns all reactions for a message', async () => {
+      const user1 = await createUser('User 1', 'user1')
+      const user2 = await createUser('User 2', 'user2')
+      const user3 = await createUser('User 3', 'user3')
+
+      const conversation = await createConversation([user1.id, user2.id, user3.id])
+      const message = await sendMessage(conversation.id, user1.id, 'Great news!')
+
+      // User 2 reacts with 👍
+      await app.request(`/messages/${message.id}/reactions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user2.id,
+          emoji: '👍',
+        }),
+      })
+
+      // User 3 reacts with 🎉
+      await app.request(`/messages/${message.id}/reactions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user3.id,
+          emoji: '🎉',
+        }),
+      })
+
+      // User 2 also reacts with ❤️
+      await app.request(`/messages/${message.id}/reactions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user2.id,
+          emoji: '❤️',
+        }),
+      })
+
+      const response = await app.request(`/messages/${message.id}/reactions`, {
+        method: 'GET',
+      })
+
+      expect(response.status).toBe(200)
+
+      const reactions = await response.json()
+
+      // Zod schema validation
+      expectValidZodSchema(getMessagesIdReactionsResponse, reactions, 'reactions')
+
+      // Snapshot testing
+      expectMatchesSnapshot(reactions, 'GET /messages/:id/reactions - multiple reactions')
+
+      // Business logic assertions
+      expect(reactions).toHaveLength(3)
+      expect(reactions.some((r: any) => r.userId === user2.id && r.emoji === '👍')).toBe(true)
+      expect(reactions.some((r: any) => r.userId === user3.id && r.emoji === '🎉')).toBe(true)
+      expect(reactions.some((r: any) => r.userId === user2.id && r.emoji === '❤️')).toBe(true)
+    })
+
+    it('returns 404 for non-existent message', async () => {
+      const fakeMessageId = '00000000-0000-0000-0000-000000000000'
+
+      const response = await app.request(`/messages/${fakeMessageId}/reactions`, {
+        method: 'GET',
+      })
 
       expect(response.status).toBe(404)
     })
