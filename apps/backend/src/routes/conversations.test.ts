@@ -599,13 +599,13 @@ describe('Conversations API', () => {
     })
 
     it('includes reactions in message list', async () => {
-      const user1 = await createUser('User 1', 'user1')
-      const user2 = await createUser('User 2', 'user2')
+      const { chatUser: user1, headers: user1Headers } = await createAuthUserWithChatUser('user1', 'user1@test.com')
+      const { chatUser: user2, headers: user2Headers } = await createAuthUserWithChatUser('user2', 'user2@test.com')
 
       // Create a conversation
       const createResponse = await app.request('/conversations', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...user1Headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: 'direct',
           participantIds: [user1.id, user2.id],
@@ -617,7 +617,7 @@ describe('Conversations API', () => {
       // Send a message
       const messageResponse = await app.request(`/conversations/${conversation.id}/messages`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...user1Headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           senderUserId: user1.id,
           text: 'Hello with reactions',
@@ -626,28 +626,28 @@ describe('Conversations API', () => {
 
       const message = await messageResponse.json()
 
-      // Add reactions to the message
+      // Add reactions to the message (user2 adds reaction)
       await app.request(`/messages/${message.id}/reactions`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...user2Headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: user2.id,
           emoji: '👍',
         }),
       })
 
+      // Add reactions to the message (user1 adds reaction)
       await app.request(`/messages/${message.id}/reactions`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...user1Headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: user1.id,
           emoji: '❤️',
         }),
       })
 
       // Get messages
       const response = await app.request(
-        `/conversations/${conversation.id}/messages?userId=${user1.id}`
+        `/conversations/${conversation.id}/messages?userId=${user1.id}`,
+        { headers: user1Headers }
       )
 
       expect(response.status).toBe(200)
@@ -662,14 +662,14 @@ describe('Conversations API', () => {
     })
 
     it('returns 403 when user is not a participant', async () => {
-      const user1 = await createUser('User 1', 'user1')
+      const { chatUser: user1, headers: user1Headers } = await createAuthUserWithChatUser('user1', 'user1@test.com')
       const user2 = await createUser('User 2', 'user2')
-      const user3 = await createUser('User 3', 'user3')
+      const { chatUser: user3, headers: user3Headers } = await createAuthUserWithChatUser('user3', 'user3@test.com')
 
       // Create a conversation between user1 and user2
       const createResponse = await app.request('/conversations', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...user1Headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: 'direct',
           participantIds: [user1.id, user2.id],
@@ -680,7 +680,8 @@ describe('Conversations API', () => {
 
       // Try to get messages as user3
       const response = await app.request(
-        `/conversations/${conversation.id}/messages?userId=${user3.id}`
+        `/conversations/${conversation.id}/messages?userId=${user3.id}`,
+        { headers: user3Headers }
       )
 
       expect(response.status).toBe(403)
@@ -692,13 +693,13 @@ describe('Conversations API', () => {
 
   describe('POST /conversations/:id/messages', () => {
     it('sends a text message to a conversation', async () => {
-      const user1 = await createUser('User 1', 'user1')
+      const { chatUser: user1, headers: user1Headers } = await createAuthUserWithChatUser('user1', 'user1@test.com')
       const user2 = await createUser('User 2', 'user2')
 
       // Create a conversation
       const createResponse = await app.request('/conversations', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...user1Headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: 'direct',
           participantIds: [user1.id, user2.id],
@@ -710,7 +711,7 @@ describe('Conversations API', () => {
       // Send message
       const response = await app.request(`/conversations/${conversation.id}/messages`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...user1Headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           senderUserId: user1.id,
           text: 'Hello, world!',
@@ -735,13 +736,13 @@ describe('Conversations API', () => {
     })
 
     it('sends a reply message with replyToMessageId', async () => {
-      const user1 = await createUser('User 1', 'user1')
-      const user2 = await createUser('User 2', 'user2')
+      const { chatUser: user1, headers: user1Headers } = await createAuthUserWithChatUser('user1', 'user1@test.com')
+      const { chatUser: user2, headers: user2Headers } = await createAuthUserWithChatUser('user2', 'user2@test.com')
 
       // Create a conversation
       const createResponse = await app.request('/conversations', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...user1Headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: 'direct',
           participantIds: [user1.id, user2.id],
@@ -755,7 +756,7 @@ describe('Conversations API', () => {
         `/conversations/${conversation.id}/messages`,
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { ...user1Headers, 'Content-Type': 'application/json' },
           body: JSON.stringify({
             senderUserId: user1.id,
             text: 'Original message',
@@ -768,7 +769,7 @@ describe('Conversations API', () => {
       // Send reply
       const response = await app.request(`/conversations/${conversation.id}/messages`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...user2Headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           senderUserId: user2.id,
           text: 'Reply to original',
@@ -784,14 +785,14 @@ describe('Conversations API', () => {
     })
 
     it('returns 403 when user is not a participant', async () => {
-      const user1 = await createUser('User 1', 'user1')
+      const { chatUser: user1, headers: user1Headers } = await createAuthUserWithChatUser('user1', 'user1@test.com')
       const user2 = await createUser('User 2', 'user2')
-      const user3 = await createUser('User 3', 'user3')
+      const { chatUser: user3, headers: user3Headers } = await createAuthUserWithChatUser('user3', 'user3@test.com')
 
       // Create a conversation between user1 and user2
       const createResponse = await app.request('/conversations', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...user1Headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: 'direct',
           participantIds: [user1.id, user2.id],
@@ -803,7 +804,7 @@ describe('Conversations API', () => {
       // Try to send message as user3
       const response = await app.request(`/conversations/${conversation.id}/messages`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...user3Headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           senderUserId: user3.id,
           text: 'Should not work',
@@ -819,13 +820,13 @@ describe('Conversations API', () => {
 
   describe('POST /conversations/:id/read', () => {
     it('updates the last read message position', async () => {
-      const user1 = await createUser('User 1', 'user1')
-      const user2 = await createUser('User 2', 'user2')
+      const { chatUser: user1, headers: user1Headers } = await createAuthUserWithChatUser('user1', 'user1@test.com')
+      const { chatUser: user2, headers: user2Headers } = await createAuthUserWithChatUser('user2', 'user2@test.com')
 
       // Create a conversation
       const createResponse = await app.request('/conversations', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...user1Headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: 'direct',
           participantIds: [user1.id, user2.id],
@@ -839,7 +840,7 @@ describe('Conversations API', () => {
         `/conversations/${conversation.id}/messages`,
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { ...user2Headers, 'Content-Type': 'application/json' },
           body: JSON.stringify({
             senderUserId: user2.id,
             text: 'Test message',
@@ -852,7 +853,7 @@ describe('Conversations API', () => {
       // Update read position
       const response = await app.request(`/conversations/${conversation.id}/read`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...user1Headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: user1.id,
           lastReadMessageId: message.id,
@@ -874,13 +875,13 @@ describe('Conversations API', () => {
     })
 
     it('returns 400 for non-existent message', async () => {
-      const user1 = await createUser('User 1', 'user1')
+      const { chatUser: user1, headers: user1Headers } = await createAuthUserWithChatUser('user1', 'user1@test.com')
       const user2 = await createUser('User 2', 'user2')
 
       // Create a conversation
       const createResponse = await app.request('/conversations', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...user1Headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: 'direct',
           participantIds: [user1.id, user2.id],
@@ -892,7 +893,7 @@ describe('Conversations API', () => {
       // Try to update read position with non-existent message
       const response = await app.request(`/conversations/${conversation.id}/read`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...user1Headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: user1.id,
           lastReadMessageId: '00000000-0000-0000-0000-000000000000',
@@ -908,13 +909,13 @@ describe('Conversations API', () => {
 
   describe('GET /conversations/:id/unread-count', () => {
     it('returns the unread message count', async () => {
-      const user1 = await createUser('User 1', 'user1')
-      const user2 = await createUser('User 2', 'user2')
+      const { chatUser: user1, headers: user1Headers } = await createAuthUserWithChatUser('user1', 'user1@test.com')
+      const { chatUser: user2, headers: user2Headers } = await createAuthUserWithChatUser('user2', 'user2@test.com')
 
       // Create a conversation
       const createResponse = await app.request('/conversations', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...user1Headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: 'direct',
           participantIds: [user1.id, user2.id],
@@ -926,7 +927,7 @@ describe('Conversations API', () => {
       // Send messages
       await app.request(`/conversations/${conversation.id}/messages`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...user2Headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           senderUserId: user2.id,
           text: 'Message 1',
@@ -935,7 +936,7 @@ describe('Conversations API', () => {
 
       await app.request(`/conversations/${conversation.id}/messages`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...user2Headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           senderUserId: user2.id,
           text: 'Message 2',
@@ -944,7 +945,8 @@ describe('Conversations API', () => {
 
       // Get unread count
       const response = await app.request(
-        `/conversations/${conversation.id}/unread-count?userId=${user1.id}`
+        `/conversations/${conversation.id}/unread-count?userId=${user1.id}`,
+        { headers: user1Headers }
       )
 
       expect(response.status).toBe(200)
@@ -959,13 +961,13 @@ describe('Conversations API', () => {
     })
 
     it('returns total message count when no read position is set', async () => {
-      const user1 = await createUser('User 1', 'user1')
-      const user2 = await createUser('User 2', 'user2')
+      const { chatUser: user1, headers: user1Headers } = await createAuthUserWithChatUser('user1', 'user1@test.com')
+      const { chatUser: user2, headers: user2Headers } = await createAuthUserWithChatUser('user2', 'user2@test.com')
 
       // Create a conversation
       const createResponse = await app.request('/conversations', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...user1Headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: 'direct',
           participantIds: [user1.id, user2.id],
@@ -977,7 +979,7 @@ describe('Conversations API', () => {
       // Send messages
       await app.request(`/conversations/${conversation.id}/messages`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...user2Headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           senderUserId: user2.id,
           text: 'Message 1',
@@ -986,7 +988,7 @@ describe('Conversations API', () => {
 
       await app.request(`/conversations/${conversation.id}/messages`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...user2Headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           senderUserId: user2.id,
           text: 'Message 2',
@@ -995,7 +997,8 @@ describe('Conversations API', () => {
 
       // Get unread count without setting read position
       const response = await app.request(
-        `/conversations/${conversation.id}/unread-count?userId=${user1.id}`
+        `/conversations/${conversation.id}/unread-count?userId=${user1.id}`,
+        { headers: user1Headers }
       )
 
       expect(response.status).toBe(200)
