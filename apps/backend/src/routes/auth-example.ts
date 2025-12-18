@@ -67,7 +67,7 @@ router.get('/profile', requireAuth, async (c) => {
       ? {
           id: chatProfile.id,
           idAlias: chatProfile.idAlias,
-          displayName: chatProfile.displayName,
+          name: chatProfile.name,
           avatarUrl: chatProfile.avatarUrl,
         }
       : null,
@@ -96,25 +96,25 @@ router.get('/public', optionalAuth, (c) => {
 })
 
 /**
- * PUT /profile/display-name
- * Update user's display name in chat profile
+ * PUT /profile/name
+ * Update user's name in chat profile
  * Requires authentication
  */
-router.put('/profile/display-name', requireAuth, async (c) => {
+router.put('/profile/name', requireAuth, async (c) => {
   const authUser = c.get('authUser')
   const db = createD1Client(c.env.DB)
 
   const body = await c.req.json()
-  const { displayName } = body
+  const { name } = body
 
-  if (!displayName || typeof displayName !== 'string') {
-    return c.json({ error: 'Display name is required' }, 400)
+  if (!name || typeof name !== 'string') {
+    return c.json({ error: 'Name is required' }, 400)
   }
 
-  // Update chat user display name
+  // Update chat user name
   const [updated] = await db
     .update(chatUsers)
-    .set({ displayName })
+    .set({ name })
     .where(eq(chatUsers.authUserId, authUser!.id))
     .returning()
 

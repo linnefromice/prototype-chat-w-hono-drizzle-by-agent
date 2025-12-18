@@ -17,14 +17,20 @@ import * as schema from '../db/schema'
  */
 export const createAuth = (db: DrizzleD1Database<typeof schema>) => {
   return betterAuth({
+    // Base URL and path configuration
+    baseURL: process.env.NODE_ENV === 'test'
+      ? 'http://localhost:3000'  // Test environment
+      : (process.env.BASE_URL || 'https://your-app.workers.dev'),  // Production
+    basePath: '/api/auth',  // Required: tells BetterAuth it's mounted at this path
+
     // Database configuration
     database: drizzleAdapter(db, {
       provider: "sqlite",
       schema: {
-        user: "auth_user",
-        session: "auth_session",
-        account: "auth_account",
-        verification: "auth_verification",
+        user: schema.authUser,
+        session: schema.authSession,
+        account: schema.authAccount,
+        verification: schema.authVerification,
       }
     }),
 

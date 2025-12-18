@@ -12,9 +12,22 @@ import authExampleRouter from './routes/auth-example'
 const app = new Hono<{ Bindings: Env }>()
 
 // Better Auth authentication handler
-// Automatically handles: /api/auth/sign-up, /api/auth/sign-in/username, /api/auth/sign-out, etc.
-app.on(['POST', 'GET'], '/api/auth/**', async (c) => {
-  const db = createD1Client(c.env.DB)
+// Automatically handles: /api/auth/sign-up/username, /api/auth/sign-in/username, /api/auth/sign-out, etc.
+// Use app.on() to catch all HTTP methods for auth routes
+// Important: Use single asterisk (*) not double (**) for path matching
+app.on(['POST', 'GET'], '/api/auth/*', async (c) => {
+  // In test/development mode, use the local BetterSQLite3 database
+  // In production, use Cloudflare D1
+  let db
+  if (process.env.NODE_ENV === 'test' || !c.env?.DB) {
+    // Use local BetterSQLite3 database for tests
+    const { db: localDb } = await import('./infrastructure/db/client')
+    db = localDb as any // Cast to satisfy TypeScript - BetterAuth works with both
+  } else {
+    // Use Cloudflare D1 in production
+    db = createD1Client(c.env.DB)
+  }
+
   const auth = createAuth(db)
   return auth.handler(c.req.raw)
 })
