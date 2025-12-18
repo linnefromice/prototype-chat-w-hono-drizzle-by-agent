@@ -761,6 +761,32 @@ emailAndPassword: {
 }
 ```
 
+## チャット系APIへの認証適用
+
+このAPIでは、すべてのチャット系エンドポイント（`/conversations`, `/messages`, `/users`）に認証保護が適用されています。
+
+### 保護されているエンドポイント
+
+- ✅ **Conversations API**: 会話一覧、メッセージ送信、既読更新など
+- ✅ **Messages API**: メッセージ削除、リアクション、ブックマークなど
+- ✅ **Users API**: ユーザーブックマーク（所有者チェック付き）
+
+### 認証ユーザーとチャットユーザーのマッピング
+
+認証ユーザー（`auth_user`）とチャットユーザー（`users`）は分離されており、`getChatUserId`ユーティリティ（`src/utils/getChatUserId.ts`）を使用して自動的にマッピングされます。
+
+```typescript
+// すべてのチャット系エンドポイントで使用されるパターン
+router.get('/', requireAuth, async c => {
+  const authUser = c.get('authUser')
+  const db = await getDbClient(c)
+  const userId = await getChatUserId(db, authUser!)  // 認証ユーザー→チャットユーザーID
+  // ...チャット操作
+})
+```
+
+詳細は `docs/AUTHENTICATION_STATUS.md` を参照してください。
+
 ## まとめ
 
 - **認証方式**: Username/Password (Cookie-based sessions)
@@ -769,5 +795,6 @@ emailAndPassword: {
 - **セキュリティ**: bcryptパスワードハッシュ、HttpOnly/SameSite クッキー
 - **クライアント**: `credentials: 'include'` を常に設定
 - **拡張性**: OAuth, 2FA, メール確認などの追加が容易
+- **チャット保護**: すべてのチャット系APIに認証保護を適用済み
 
 詳細な実装や質問がある場合は、[BetterAuth公式ドキュメント](https://www.better-auth.com/docs)を参照してください。
