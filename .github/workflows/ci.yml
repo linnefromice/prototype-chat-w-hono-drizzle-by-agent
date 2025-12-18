@@ -8,23 +8,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: postgres://postgres:postgres@localhost:5432/hono_test
-
-    services:
-      postgres:
-        image: postgres:15
-        ports:
-          - 5432:5432
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: hono_test
-        options: >-
-          --health-cmd="pg_isready"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
 
     steps:
       - uses: actions/checkout@v4
@@ -41,24 +24,15 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Write environment files
-        run: |
-          echo "DATABASE_URL=${{ env.DATABASE_URL }}" > apps/backend/.env
-          echo "DATABASE_URL=${{ env.DATABASE_URL }}" > apps/backend/.env.test
-
       - name: Type check
         run: npm run build
-        working-directory: apps/backend
-
-      - name: Run migrations
-        run: |
-          export DATABASE_URL="${{ env.DATABASE_URL }}"
-          npx drizzle-kit push --dialect=postgresql --schema=./src/infrastructure/db/schema.ts --url="${DATABASE_URL}"
         working-directory: apps/backend
 
       - name: Run backend tests with coverage
         run: npm run test:coverage
         working-directory: apps/backend
+        env:
+          NODE_ENV: test
 
       - name: Display coverage summary
         run: |
