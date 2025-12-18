@@ -296,8 +296,12 @@ export class DrizzleChatRepository implements ChatRepository {
       .from(messages)
       .where(
         before
-          ? and(eq(messages.conversationId, conversationId), lt(messages.createdAt, before))
-          : eq(messages.conversationId, conversationId),
+          ? and(
+              eq(messages.conversationId, conversationId),
+              lt(messages.createdAt, before),
+              eq(messages.status, 'active')
+            )
+          : and(eq(messages.conversationId, conversationId), eq(messages.status, 'active')),
       )
       .orderBy(desc(messages.createdAt))
       .limit(limit)
@@ -336,6 +340,17 @@ export class DrizzleChatRepository implements ChatRepository {
       ...mapMessage(messageRow),
       reactions: reactionRows.map(mapReaction),
     }
+  }
+
+  async deleteMessage(messageId: string, deletedByUserId: string): Promise<void> {
+    await this.client
+      .update(messages)
+      .set({
+        status: 'deleted',
+        deletedAt: new Date().toISOString(),
+        deletedByUserId,
+      })
+      .where(eq(messages.id, messageId))
   }
 
   async addReaction(messageId: string, data: ReactionRequest): Promise<Reaction> {

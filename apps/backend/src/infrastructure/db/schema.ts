@@ -6,6 +6,7 @@ const conversationTypes = ['direct', 'group'] as const
 const participantRoles = ['member', 'admin'] as const
 const messageTypes = ['text', 'system'] as const
 const systemEvents = ['join', 'leave'] as const
+const messageStatuses = ['active', 'deleted'] as const
 
 export const users = sqliteTable('users', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
@@ -58,6 +59,9 @@ export const messages: SQLiteTableWithColumns<any> = sqliteTable(
       onDelete: 'set null',
     }),
     systemEvent: text('system_event', { enum: systemEvents }),
+    status: text('status', { enum: messageStatuses }).notNull().default('active'),
+    deletedAt: text('deleted_at'),
+    deletedByUserId: text('deleted_by_user_id').references(() => users.id, { onDelete: 'set null' }),
     createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
   },
   table => ({}),

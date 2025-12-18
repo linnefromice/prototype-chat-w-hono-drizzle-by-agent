@@ -183,6 +183,24 @@ export class ChatUsecase {
     return this.repo.listBookmarks(userId)
   }
 
+  async deleteMessage(messageId: string, requestUserId: string): Promise<void> {
+    const message = await this.repo.findMessageById(messageId)
+    if (!message) {
+      throw new HttpError(404, 'Message not found')
+    }
+
+    // Check if the user is the sender of the message
+    if (message.senderUserId !== requestUserId) {
+      // Check if the user is an admin of the conversation
+      const participant = await this.repo.findParticipant(message.conversationId, requestUserId)
+      if (!participant || participant.role !== 'admin') {
+        throw new HttpError(403, 'You are not authorized to delete this message')
+      }
+    }
+
+    await this.repo.deleteMessage(messageId, requestUserId)
+  }
+
   async createSystemMessage(
     conversationId: string,
     payload: Pick<SendMessageRequest, 'systemEvent' | 'senderUserId' | 'text'>,

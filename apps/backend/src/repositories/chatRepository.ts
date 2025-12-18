@@ -34,6 +34,7 @@ export interface ChatRepository {
   ): Promise<Message>
   listMessages(conversationId: string, options?: MessageQueryOptions): Promise<Message[]>
   findMessageById(messageId: string): Promise<Message | null>
+  deleteMessage(messageId: string, deletedByUserId: string): Promise<void>
 
   addReaction(messageId: string, data: ReactionRequest): Promise<Reaction>
   removeReaction(messageId: string, emoji: string, userId: string): Promise<Reaction | null>

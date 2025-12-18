@@ -20,6 +20,24 @@ const handleError = (error: unknown, c: any) => {
   return c.json({ message }, 500)
 }
 
+router.delete('/:id', async c => {
+  const messageId = c.req.param('id')
+  const userId = c.req.query('userId')
+
+  if (!userId) {
+    return c.json({ message: 'userId is required' }, 400)
+  }
+
+  try {
+    const db = await getDbClient(c)
+    const chatUsecase = new ChatUsecase(new DrizzleChatRepository(db))
+    await chatUsecase.deleteMessage(messageId, userId)
+    return c.body(null, 204)
+  } catch (error) {
+    return handleError(error, c)
+  }
+})
+
 router.get('/:id/reactions', async c => {
   const messageId = c.req.param('id')
 

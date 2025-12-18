@@ -15,6 +15,13 @@
       "when": 1765892437443,
       "tag": "0001_regular_misty_knight",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1766020364934,
+      "tag": "0002_uneven_cyclops",
+      "breakpoints": true
     }
   ]
 }
