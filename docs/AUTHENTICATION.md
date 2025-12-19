@@ -119,6 +119,36 @@ CREATE TABLE users (
 - `users`: チャット機能専用（アプリケーションが管理）
 - 分離することで、認証とビジネスロジックを独立させ、将来的な拡張性を確保
 
+**認証ユーザーとチャットユーザーの関係性**:
+
+1. **独立した管理**:
+   - `auth_user`テーブルはBetterAuthが完全に管理
+   - `users`テーブルはアプリケーションが管理（チャット用のプロフィール情報）
+   - `users.auth_user_id`で両者をリンク
+
+2. **データフロー**:
+   ```
+   ユーザー登録
+   ↓
+   auth_user レコード作成（BetterAuth）
+   ↓
+   users レコード作成（アプリケーション）
+   ↓
+   users.auth_user_id に auth_user.id を設定してリンク
+   ```
+
+3. **セッションからユーザーIDの取得**:
+   ```typescript
+   // 認証ミドルウェアで取得
+   const authUser = c.get('authUser')  // auth_user の情報
+
+   // チャットユーザーIDに変換
+   const chatUserId = await getChatUserId(db, authUser)
+
+   // チャット操作に使用
+   await chatUsecase.listConversationsForUser(chatUserId)
+   ```
+
 ## API エンドポイント
 
 ### 認証エンドポイント
@@ -760,6 +790,99 @@ emailAndPassword: {
   requireEmailVerification: true, // 有効化
 }
 ```
+
+## 開発環境のセットアップ
+
+### シードデータについて
+
+開発環境では、20人の初期ユーザーが用意されており、すべて以下の認証情報でログイン可能です。
+
+**ユーザー一覧**:
+- alice, bob, carol, dave, eve, frank, grace, heidi, ivan, judy
+- kevin, laura, michael, nancy, oscar, peggy, quinn, rachel, steve, tina
+
+**ログイン情報**:
+```
+ユーザー名: alice (または他の任意のユーザー名)
+メールアドレス: alice@example.com
+パスワード: Password
+```
+
+### セットアップ手順
+
+#### 1. ローカル開発環境（BetterSQLite3）
+
+```bash
+# データベースのクリーンアップと再作成
+npm run d1:clean:local && npm run d1:migrate:local
+
+# チャットユーザーを作成
+npm run d1:seed:users:local
+
+# 認証ユーザーを作成してリンク
+npm run db:seed
+
+# または一括で実行
+npm run d1:reset:local
+```
+
+#### 2. D1リモート環境
+
+```bash
+# 一括セットアップ（推奨）
+npm run d1:reset:remote
+
+# または個別に実行
+npm run d1:clean:remote
+npm run d1:migrate:remote
+npm run d1:seed:users:remote
+npm run operation:seed:auth-users:remote
+```
+
+### シードデータの仕組み
+
+**実行順序**:
+1. **002_chat_users.sql** - チャットユーザー作成（`users`テーブル、`auth_user_id`は初期状態でNULL）
+2. **001_auth_users.ts** - 認証ユーザー作成（`auth_user`テーブル）と既存チャットユーザーへのリンク
+
+**リンクのプロセス**:
+```typescript
+// 001_auth_users.ts の処理フロー
+for (const user of initialUsers) {
+  // 1. Better Auth APIで認証ユーザー作成
+  const result = await auth.api.signUpEmail({
+    body: {
+      username: user.username,
+      email: `${user.username}@example.com`,
+      password: 'Password',
+      name: user.name,
+    },
+  })
+
+  // 2. 対応するチャットユーザーをauth_user_idで更新
+  await db
+    .update(chatUsers)
+    .set({ authUserId: result.user.id })
+    .where(eq(chatUsers.id, user.chatUserId))
+}
+```
+
+### Admin Seed Endpoint
+
+リモート環境（Cloudflare Workers）では、TypeScriptのseedスクリプトを直接実行できないため、Admin APIエンドポイントを使用します。
+
+**エンドポイント**: `POST /admin/seed-auth-users-by-app-users`
+
+**機能**:
+- `auth_user_id`が`NULL`のチャットユーザーを検索
+- 各ユーザーに対して認証ユーザーを作成
+- 自動的にリンクを設定
+
+**制限**:
+- 開発・ステージング環境でのみ利用可能
+- 本番環境では403エラーを返す
+
+詳細は `docs/ADMIN_SEED_ENDPOINT_DESIGN.md` を参照してください。
 
 ## チャット系APIへの認証適用
 

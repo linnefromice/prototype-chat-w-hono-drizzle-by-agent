@@ -185,6 +185,7 @@ router.get('/', requireAuth, async c => {
 1. ✅ `getChatUserId`ユーティリティを作成（`src/utils/getChatUserId.ts`）
 2. ✅ `auth_user.id` → `users.auth_user_id` のマッピングを自動解決
 3. ✅ すべてのチャット系エンドポイントで`getChatUserId`を使用
+4. ✅ 開発環境用のシードデータシステムを実装
 
 ```typescript
 // ✅ 実装済み: 認証済みユーザーのチャットプロフィール取得
@@ -206,6 +207,52 @@ export async function getChatUserId(
   return chatUser.id
 }
 ```
+
+### 開発環境のシードデータ
+
+開発環境では、20人の初期ユーザー（Alice, Bob, Carol, Dave, Eve, Frank, Grace, Heidi, Ivan, Judy, Kevin, Laura, Michael, Nancy, Oscar, Peggy, Quinn, Rachel, Steve, Tina）を用意しています。
+
+**シードデータの実行順序**:
+1. **001_auth_users.ts** - 認証ユーザー作成（TypeScript、ローカル開発用）
+2. **002_chat_users.sql** - チャットユーザー作成（SQL、D1環境用）
+
+**ローカル開発環境でのセットアップ**:
+```bash
+# すべてのテーブルを削除して再作成
+npm run d1:clean:local && npm run d1:migrate:local
+
+# チャットユーザーを作成（auth_user_id は NULL）
+npm run d1:seed:users:local
+
+# 認証ユーザーを作成し、チャットユーザーにリンク
+npm run db:seed
+
+# または一括で実行
+npm run d1:reset:local
+```
+
+**リモート環境（D1）でのセットアップ**:
+```bash
+# すべてのテーブルを削除して再作成し、認証ユーザーも作成
+npm run d1:reset:remote
+
+# または個別に実行
+npm run d1:clean:remote && npm run d1:migrate:remote
+npm run d1:seed:users:remote
+npm run operation:seed:auth-users:remote  # Admin エンドポイント経由
+```
+
+**ログイン情報**:
+- **ユーザー名**: alice, bob, carol, dave, eve, frank, grace, heidi, ivan, judy, kevin, laura, michael, nancy, oscar, peggy, quinn, rachel, steve, tina
+- **メールアドレス**: `{ユーザー名}@example.com`（例: alice@example.com）
+- **パスワード**: `Password`（すべてのユーザー共通）
+
+**実装の詳細**:
+- `001_auth_users.ts`: Better Auth の API を使用してパスワードを安全にハッシュ化
+- 既に認証情報が設定されているユーザーはスキップ
+- 認証ユーザー作成後、対応するチャットユーザーの`auth_user_id`を更新してリンク
+
+詳細は `apps/backend/src/infrastructure/db/seeds/README.md` を参照してください。
 
 ## 実装済みの修正内容
 
