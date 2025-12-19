@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gt, inArray, lt } from 'drizzle-orm'
+import { and, asc, count, desc, eq, gt, inArray, lt } from 'drizzle-orm'
 import type { SQL } from 'drizzle-orm'
 import type {
   AddParticipantRequest,
@@ -395,6 +395,7 @@ export class DrizzleChatRepository implements ChatRepository {
       .select()
       .from(reactions)
       .where(eq(reactions.messageId, messageId))
+      .orderBy(asc(reactions.createdAt))
 
     return reactionRows.map(mapReaction)
   }

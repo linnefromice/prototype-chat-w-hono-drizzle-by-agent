@@ -4,24 +4,24 @@ exports[`Messages API > GET /messages/:id/reactions > returns all reactions for 
 [
   {
     "createdAt": "<DATETIME:1>",
-    "emoji": "❤️",
+    "emoji": "👍",
     "id": "<UUID:1>",
     "messageId": "<UUID:2>",
     "userId": "<UUID:3>",
   },
   {
     "createdAt": "<DATETIME:2>",
-    "emoji": "👍",
+    "emoji": "🎉",
     "id": "<UUID:4>",
     "messageId": "<UUID:2>",
-    "userId": "<UUID:3>",
+    "userId": "<UUID:5>",
   },
   {
     "createdAt": "<DATETIME:3>",
-    "emoji": "🎉",
-    "id": "<UUID:5>",
+    "emoji": "❤️",
+    "id": "<UUID:6>",
     "messageId": "<UUID:2>",
-    "userId": "<UUID:6>",
+    "userId": "<UUID:3>",
   },
 ]
 `;
