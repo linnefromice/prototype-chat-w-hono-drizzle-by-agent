@@ -1,14 +1,16 @@
--- Initial user data for D1 environments
+-- Chat users data (users table)
+-- Links chat functionality users to auth users
+--
+-- Dependencies:
+--   - Requires auth users to be created first (001_auth_users.ts)
+--   - auth_user_id should match the ID from auth_user table
+--
 -- Alice and Bob characters from cryptography and security protocols
 -- Reference: https://en.wikipedia.org/wiki/Alice_and_Bob
 -- Avatar images from PokeAPI sprites
 --
--- Note: auth_user_id is NULL initially and will be populated by running the TypeScript seed:
---   npm run db:seed
---
--- This creates chat users without authentication. To add authentication:
---   1. Run this SQL seed first: npm run d1:seed:local (or :remote)
---   2. Then run the TypeScript seed: npm run db:seed
+-- Note: auth_user_id is set to NULL for now.
+-- Use 001_auth_users.ts to create auth users and link them to these chat users.
 
 INSERT INTO users (id, id_alias, name, avatar_url, auth_user_id, created_at) VALUES
   ('550e8400-e29b-41d4-a716-446655440001', 'alice', 'Alice', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png', NULL, strftime('%Y-%m-%dT%H:%M:%S', 'now') || 'Z'),

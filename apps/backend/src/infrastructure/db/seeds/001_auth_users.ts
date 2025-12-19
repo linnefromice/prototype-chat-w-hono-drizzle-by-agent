@@ -6,10 +6,14 @@
  *
  * All users have the password: "Password"
  *
+ * Execution order:
+ *   1. This script (001_auth_users.ts) - Creates auth users
+ *   2. SQL seed (002_chat_users.sql) - Creates chat users and links to auth users
+ *
  * Usage:
  *   npm run db:seed
  *   or
- *   NODE_ENV=development tsx -r tsconfig-paths/register src/infrastructure/db/seeds/002_auth_users.ts
+ *   NODE_ENV=development tsx -r tsconfig-paths/register src/infrastructure/db/seeds/001_auth_users.ts
  */
 
 import { db } from '../client'
