@@ -24,7 +24,7 @@ export const createAuth = (db: DrizzleD1Database<typeof schema>, secret?: string
     // Base URL and path configuration
     baseURL: process.env.NODE_ENV === 'test'
       ? 'http://localhost:3000'  // Test environment
-      : (process.env.BASE_URL || 'https://your-app.workers.dev'),  // Production
+      : (process.env.BASE_URL || 'https://prototype-hono-drizzle-backend.linnefromice.workers.dev'),  // Production
     basePath: '/api/auth',  // Required: tells BetterAuth it's mounted at this path
 
     // Database configuration
