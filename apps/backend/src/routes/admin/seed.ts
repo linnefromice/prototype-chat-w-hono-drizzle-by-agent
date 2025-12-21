@@ -39,10 +39,17 @@ export async function seedAuthUsersByAppUsers(c: Context<{ Bindings: Env; Variab
   try {
     // Step 1: auth_user_id が NULL の users を取得
     const db = await getDbClient(c)
+
+    // バッチサイズ制限（Cloudflare Workersのタイムアウト対策）
+    const batchSizeParam = c.req.query('batchSize')
+    const batchSize = batchSizeParam ? parseInt(batchSizeParam, 10) : 5
+    const limitedBatchSize = Math.min(Math.max(batchSize, 1), 10) // 1-10の範囲に制限
+
     const usersWithoutAuth = await db
       .select()
       .from(chatUsers)
       .where(isNull(chatUsers.authUserId))
+      .limit(limitedBatchSize) // バッチサイズで制限
       .all()
 
     if (usersWithoutAuth.length === 0) {
@@ -137,6 +144,13 @@ export async function seedAuthUsersByAppUsers(c: Context<{ Bindings: Env; Variab
       }
     }
 
+    // 残りのユーザー数を確認
+    const remainingUsers = await db
+      .select()
+      .from(chatUsers)
+      .where(isNull(chatUsers.authUserId))
+      .all()
+
     return c.json({
       success: true,
       summary: {
@@ -146,6 +160,10 @@ export async function seedAuthUsersByAppUsers(c: Context<{ Bindings: Env; Variab
         failed: failedCount,
         syncErrors: syncErrorCount
       },
+      remaining: remainingUsers.length,
+      message: remainingUsers.length > 0
+        ? `${remainingUsers.length} users still need auth setup. Run again to continue.`
+        : 'All users have auth setup complete!',
       results
     })
 
