@@ -1,237 +1,394 @@
-# prototype-hono-drizzle-codex
+# prototype-chat-w-hono-drizzle-by-agent
 
-## Project overview
+## Project Overview
 
-Monorepo starter for a Hono API with Drizzle ORM and OpenAPI-driven type sharing. The
-structure is ready for future frontends or shared packages under `apps/` and
-`packages/`.
+Cloudflare Workers上で動作するチャットアプリケーションAPIです。Hono、Drizzle ORM、D1データベースを使用し、OpenAPIによる型安全な開発を実現しています。
+
+### 技術スタック
+
+- **ランタイム**: Cloudflare Workers
+- **Webフレームワーク**: Hono
+- **データベース**: Cloudflare D1 (SQLite)
+- **ORM**: Drizzle ORM
+- **認証**: Better Auth (username/password認証)
+- **型生成**: OpenAPI + Orval
+- **テスト**: Vitest
 
 ## Prerequisites
 
 - Node.js 20+ and npm
-- Docker and Docker Compose (for local database)
-  - OR: Local PostgreSQL instance or cloud database for `DATABASE_URL`
-- Ability to install workspace dependencies (`npm install`)
+- Cloudflare アカウント (本番デプロイ用)
+- Wrangler CLI (npm経由でインストール可能)
 
-## Database Setup
+## クイックスタート
 
-### Using Docker (Recommended for local development)
-
-1. Start PostgreSQL with Docker Compose:
-
-   ```bash
-   docker compose up -d
-   ```
-
-2. Verify the database is running:
-
-   ```bash
-   docker compose ps
-   ```
-
-3. Access the database UI (Adminer):
-
-   - Open http://localhost:8080 in your browser
-   - Login credentials:
-     - System: `PostgreSQL`
-     - Server: `postgres`
-     - Username: `postgres`
-     - Password: `password`
-     - Database: `app_db`
-
-4. Stop the database when not needed:
-
-   ```bash
-   docker compose down
-   ```
-
-5. To remove all data and start fresh:
-
-   ```bash
-   docker compose down -v
-   ```
-
-### Using an existing PostgreSQL instance
-
-If you prefer to use your own PostgreSQL instance, update `DATABASE_URL` in
-`apps/backend/.env` to point to your database.
-
-## Getting started
-
-1. Install dependencies at the repo root:
-
-   ```bash
-   npm install
-   ```
-
-2. Copy the backend environment template and set your database URL:
-
-   ```bash
-   cp apps/backend/.env.example apps/backend/.env
-   # If using Docker Compose, no changes needed
-   # Otherwise, edit apps/backend/.env to point DATABASE_URL at your Postgres instance
-   ```
-
-3. Generate shared API types before running the backend (required on a clean clone):
-
-   ```bash
-   npm run generate:api
-   ```
-
-## Development workflow
-
-- Start the Hono API in watch mode:
-
-  ```bash
-  npm run dev:backend
-  ```
-
-- Run backend tests with Vitest:
-
-  ```bash
-  npm run test --workspace backend
-  ```
-
-- Build the backend for production output:
-
-  ```bash
-  npm run build --workspace backend
-  npm run start --workspace backend
-  ```
-
-- Keep OpenAPI output in sync whenever `packages/openapi/openapi.yaml` changes:
-
-  ```bash
-  npm run generate --workspace openapi
-  ```
-
-## Common workflows
-
-All commands can be run from the repository root.
-
-### After code changes
-
-**Quick verification**:
+### 1. 依存関係のインストール
 
 ```bash
-npm run verify
-# Runs: build + test
+npm install
 ```
 
-Or individually:
+### 2. 環境変数の設定
 
 ```bash
-npm run build
-npm run test
+# .envファイルを作成
+cp apps/backend/.env.example apps/backend/.env
+
+# .envを編集（必須項目）
+# BETTER_AUTH_SECRET=<generate-random-secret>
+# BASE_URL=http://localhost:8787
 ```
 
-### After OpenAPI spec changes
-
-When you modify `packages/openapi/openapi.yaml`:
+**SECRET生成方法**:
 
 ```bash
-npm run api:update
-# Runs: generate:api → build → test
+# OpenSSLで生成
+openssl rand -hex 32
+
+# または Node.jsで生成
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-Or step by step:
+### 3. OpenAPI型の生成
 
 ```bash
 npm run generate:api
-npm run build
-npm run test
 ```
 
-**Note**: The `generate:api` command automatically appends TypeScript type exports to the generated Orval output using a post-generation script (`packages/openapi/scripts/post-generate.ts`). This ensures that all necessary types are available to the backend without manual intervention.
-
-### After database schema changes
-
-When you modify `apps/backend/src/infrastructure/db/schema.ts`:
+### 4. ローカルD1データベースのセットアップ
 
 ```bash
-npm run db:migrate
-# Runs: db:generate → db:push → test
+# マイグレーション実行
+cd apps/backend
+npm run d1:migrate:local
+
+# シードデータ投入
+npm run d1:seed:users:local
+npm run operation:seed:auth-users:local
 ```
 
-Or step by step:
+### 5. ローカル開発サーバーの起動
 
 ```bash
-npm run db:generate  # Generate migration files
-npm run db:push      # Apply migrations to database
-npm run test         # Verify nothing broke
+# Wrangler Devで起動
+npm run wrangler:dev
+
+# または npm scriptから
+cd apps/backend
+npm run wrangler:dev
 ```
 
-### Available npm scripts
+アクセス: http://localhost:8787
 
-**Development**:
-- `npm run dev:backend` - Start backend in watch mode
-- `npm run build` - Build backend
-- `npm run test` - Run all tests
+## 開発ワークフロー
 
-**Database**:
-- `npm run db:up` - Start PostgreSQL with Docker Compose
-- `npm run db:down` - Stop PostgreSQL
-- `npm run db:logs` - View PostgreSQL logs
-- `npm run db:reset` - Reset database (remove all data)
-- `npm run db:generate` - Generate migration files
-- `npm run db:push` - Apply migrations
-- `npm run db:migrate` - Full migration workflow (generate → push → test)
-
-**API/Types**:
-- `npm run generate:api` - Regenerate OpenAPI types and schemas
-- `npm run api:update` - Full API update workflow (generate → build → test)
-
-**Verification**:
-- `npm run verify` - Build and test everything
-- `npm run build:test` - Same as verify
-
-## Database migrations
-
-Drizzle Kit reads configuration from `apps/backend/drizzle.config.ts`, which uses
-`DATABASE_URL` when present.
-
-**First time setup** (after starting Docker Compose):
+### テスト実行
 
 ```bash
-# Navigate to the backend directory
+# バックエンドテストを実行
+npm run backend:test
+
+# カバレッジ付きテスト
+npm run test:coverage
+
+# テストUI（ブラウザ）
+cd apps/backend
+npm run test:ui
+```
+
+### OpenAPI仕様変更後
+
+`packages/openapi/openapi.yaml` を編集した後：
+
+```bash
+npm run api:update
+# 実行内容: generate:api → build → test
+```
+
+### ビルドとテスト
+
+```bash
+# ビルド + テスト
+npm run build:test
+
+# または個別に
+npm run backend:build
+npm run backend:test
+```
+
+## デプロイ（Cloudflare Workers）
+
+### 初回セットアップ
+
+```bash
 cd apps/backend
 
-# Generate initial migration files
-npx drizzle-kit generate
+# 1. D1データベースを作成
+npm run d1:create
+# 出力されたdatabase_idをwrangler.tomlに設定
 
-# Apply migrations to create tables
-npx drizzle-kit push
+# 2. BetterAuthシークレットを設定
+npx wrangler secret put BETTER_AUTH_SECRET
+# プロンプトで入力: <your-secret-key>
+
+# 3. マイグレーション実行
+npm run d1:migrate:remote
+
+# 4. シードデータ投入
+npm run d1:seed:users:remote
+npm run operation:seed:auth-users:remote
 ```
 
-**Making schema changes**:
+### デプロイ実行
 
 ```bash
-# 1. Update apps/backend/src/infrastructure/db/schema.ts
-# 2. Navigate to the backend directory
 cd apps/backend
+npm run wrangler:deploy
 
-# 3. Generate SQL migrations from schema changes
-npx drizzle-kit generate
-
-# 4. Apply migrations to your database
-npx drizzle-kit push
+# デプロイURL: https://prototype-hono-drizzle-backend.linnefromice.workers.dev
 ```
 
-**Note**: Drizzle Kit will automatically use the `drizzle.config.ts` file in the current
-directory. You can also run commands from the repository root by specifying the config
-path explicitly with `--config apps/backend/drizzle.config.ts`.
+### デプロイ後の確認
 
-## Workspace layout
+```bash
+# ヘルスチェック
+curl https://prototype-hono-drizzle-backend.linnefromice.workers.dev/health
 
-- `apps/backend`: Hono API service with Zod validation, Drizzle schema, and Vitest
-  suite.
-- `packages/openapi`: Source OpenAPI spec and generated Zod schemas/types for
-  shared consumption.
+# ログ確認
+npx wrangler tail prototype-hono-drizzle-backend
+```
 
-## Troubleshooting
+## データベース管理
 
-- Ensure `DATABASE_URL` is reachable before running dev or migration commands.
-- If type generation fails, delete `packages/openapi/dist` and re-run
-  `npm run generate:api`.
-- When using a different port, set `PORT` in `apps/backend/.env` to match your
-  environment.
+### ローカルD1
+
+```bash
+cd apps/backend
+
+# マイグレーション
+npm run d1:migrate:local
+
+# シードデータ投入
+npm run d1:seed:users:local
+npm run operation:seed:auth-users:local
+
+# ユーザー一覧確認
+npm run d1:list-users:local
+npm run d1:list-auth-users:local
+
+# データベースリセット（全削除＋再構築）
+npm run d1:reset:local
+```
+
+### 本番D1
+
+```bash
+cd apps/backend
+
+# マイグレーション
+npm run d1:migrate:remote
+
+# シードデータ投入
+npm run d1:seed:users:remote
+npm run operation:seed:auth-users:remote
+
+# ユーザー一覧確認
+npm run d1:list-users:remote
+npm run d1:list-auth-users:remote
+
+# データベースリセット（注意！）
+npm run d1:reset:remote
+```
+
+## よく使うコマンド
+
+### 開発
+
+```bash
+# ローカル開発サーバー起動
+npm run wrangler:dev  # または cd apps/backend && npm run wrangler:dev
+
+# テスト実行
+npm run backend:test
+
+# ビルド
+npm run backend:build
+
+# OpenAPI型生成
+npm run generate:api
+```
+
+### データベース
+
+```bash
+# ローカルDBリセット
+cd apps/backend
+npm run d1:reset:local
+
+# 本番DBリセット（注意！）
+cd apps/backend
+npm run d1:reset:remote
+
+# SQLクエリ実行
+npm run d1:query:local "SELECT * FROM users"
+npm run d1:query:remote "SELECT * FROM users"
+```
+
+### デプロイ
+
+```bash
+# デプロイ
+cd apps/backend
+npm run wrangler:deploy
+
+# ログ確認
+npx wrangler tail prototype-hono-drizzle-backend
+```
+
+## 環境設定の詳細
+
+HTTP/HTTPS、Cookie Secure属性、環境変数の詳細については以下を参照してください：
+
+📖 **[環境設定ガイド](docs/ENVIRONMENT_SETUP.md)**
+
+- ローカル開発とCloudflare環境の違い
+- HTTP/HTTPSとSecure属性の扱い
+- 環境変数の設定方法
+- トラブルシューティング
+
+## 認証機能
+
+Better Authによるusername/password認証を実装しています。
+
+📖 **[認証ドキュメント](docs/AUTHENTICATION.md)**
+
+### デフォルトユーザー
+
+シードデータで以下のユーザーが作成されます：
+
+| username | password | 説明 |
+|----------|----------|------|
+| alice | Password123! | 一般ユーザー |
+| bob | Password123! | 一般ユーザー |
+| carol | Password123! | 一般ユーザー |
+
+### 認証エンドポイント
+
+```bash
+# ユーザー登録
+POST /api/auth/sign-up/username
+{
+  "username": "newuser",
+  "password": "Password123!",
+  "name": "New User"
+}
+
+# ログイン
+POST /api/auth/sign-in/username
+{
+  "username": "alice",
+  "password": "Password123!"
+}
+
+# ログアウト
+POST /api/auth/sign-out
+```
+
+## APIドキュメント
+
+OpenAPI仕様書: `packages/openapi/openapi.yaml`
+
+### 主要エンドポイント
+
+- `GET /health` - ヘルスチェック
+- `POST /api/auth/sign-up/username` - ユーザー登録
+- `POST /api/auth/sign-in/username` - ログイン
+- `POST /api/auth/sign-out` - ログアウト
+- `GET /conversations` - 会話一覧取得
+- `POST /conversations` - 会話作成
+- `GET /conversations/:id/messages` - メッセージ一覧取得
+- `POST /conversations/:id/messages` - メッセージ送信
+- `POST /conversations/:id/leave` - 会話から退出
+- `GET /bookmarks` - ブックマーク一覧取得
+
+## Workspace Layout
+
+```
+.
+├── apps/
+│   └── backend/           # Hono API (Cloudflare Workers)
+│       ├── src/
+│       │   ├── index.ts   # Workers エントリーポイント
+│       │   ├── server.ts  # Node.js開発サーバー
+│       │   ├── routes/    # APIルート
+│       │   ├── usecases/  # ビジネスロジック
+│       │   ├── repositories/  # データアクセス層
+│       │   └── infrastructure/
+│       │       ├── db/    # Drizzleスキーマ・クライアント
+│       │       └── auth/  # Better Auth設定
+│       ├── drizzle/       # マイグレーションファイル
+│       ├── wrangler.toml  # Cloudflare Workers設定
+│       └── package.json
+│
+├── packages/
+│   └── openapi/          # OpenAPI仕様と型生成
+│       ├── openapi.yaml  # OpenAPI仕様書
+│       └── dist/         # 生成された型・スキーマ
+│
+└── docs/                 # プロジェクトドキュメント
+    ├── ENVIRONMENT_SETUP.md  # 環境設定ガイド
+    ├── AUTHENTICATION.md     # 認証ドキュメント
+    └── AUTHENTICATION_STATUS.md  # 認証実装状況
+```
+
+## トラブルシューティング
+
+### ローカル開発でCookieが保存されない
+
+**原因**: `BASE_URL` がHTTPSになっている
+
+**解決策**:
+```bash
+# .envファイルを確認
+cat apps/backend/.env
+
+# BASE_URLをHTTPに変更
+BASE_URL=http://localhost:8787  # ✅ 正しい
+```
+
+### 本番環境で認証が失敗する
+
+**原因**: Cloudflare Secretsが設定されていない
+
+**解決策**:
+```bash
+cd apps/backend
+npx wrangler secret put BETTER_AUTH_SECRET
+npx wrangler secret list
+npm run wrangler:deploy
+```
+
+### テストが失敗する
+
+**解決策**:
+```bash
+# .env.testファイルを確認
+cp apps/backend/.env apps/backend/.env.test
+
+# テスト再実行
+npm run backend:test
+```
+
+詳細は [環境設定ガイド](docs/ENVIRONMENT_SETUP.md) を参照してください。
+
+## ライセンス
+
+MIT
+
+---
+
+## 関連ドキュメント
+
+- 📖 [環境設定ガイド](docs/ENVIRONMENT_SETUP.md) - HTTP/HTTPS、環境変数、デプロイ方法
+- 📖 [認証ドキュメント](docs/AUTHENTICATION.md) - Better Auth実装の詳細
+- 📖 [認証実装状況](docs/AUTHENTICATION_STATUS.md) - 認証機能の実装状況
