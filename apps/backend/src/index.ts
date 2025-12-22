@@ -29,9 +29,10 @@ app.on(['POST', 'GET'], '/api/auth/*', async (c) => {
     db = createD1Client(c.env.DB)
   }
 
-  // Pass BETTER_AUTH_SECRET from Cloudflare Workers env or process.env (for local)
+  // Pass BETTER_AUTH_SECRET and BASE_URL from Cloudflare Workers env or process.env (for local)
   const secret = c.env?.BETTER_AUTH_SECRET
-  const auth = createAuth(db, secret)
+  const baseUrl = c.env?.BASE_URL
+  const auth = createAuth(db, secret, baseUrl)
   return auth.handler(c.req.raw)
 })
 

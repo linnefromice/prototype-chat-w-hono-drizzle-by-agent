@@ -34,7 +34,8 @@ export const requireAuth = createMiddleware<{
   }
 
   const secret = c.env?.BETTER_AUTH_SECRET
-  const auth = createAuth(db, secret)
+  const baseUrl = c.env?.BASE_URL
+  const auth = createAuth(db, secret, baseUrl)
 
   const session = await auth.api.getSession({
     headers: c.req.raw.headers
@@ -89,7 +90,8 @@ export const optionalAuth = createMiddleware<{
   }
 
   const secret = c.env?.BETTER_AUTH_SECRET
-  const auth = createAuth(db, secret)
+  const baseUrl = c.env?.BASE_URL
+  const auth = createAuth(db, secret, baseUrl)
 
   const session = await auth.api.getSession({
     headers: c.req.raw.headers

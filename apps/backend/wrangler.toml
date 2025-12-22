@@ -3,6 +3,12 @@ main = "src/index.ts"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
+# Environment variables for local development
+# Note: These are loaded from .env file automatically by wrangler
+# But we need to explicitly declare them here for the worker to access them
+[vars]
+BASE_URL = "http://localhost:8787"
+
 # D1 Database binding
 [[d1_databases]]
 binding = "DB"
