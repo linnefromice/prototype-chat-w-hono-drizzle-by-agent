@@ -186,16 +186,18 @@
 - [x] #18 DBクライアント型改善 (M: 1-2d) ✅ 2025-12-23完了
   - [x] 型キャスト箇所の調査（9箇所の`as any`を特定）
   - [x] ジェネリクス実装（`createAuth`関数をジェネリック化）
-  - [x] `as any` の削除（全9箇所を削除）
-  - [x] テストで型安全性確認（129テスト全て通過）
+  - [x] DB関連の`as any`削除（6箇所中5箇所を削除、残り1箇所は型システム制限により保持）
+  - [x] テストで型安全性確認（143テスト全て通過）
   - **対応箇所**:
     - `infrastructure/auth/config.ts`: `createAuth`を`<TDatabase extends DrizzleDatabase>`でジェネリック化
     - `middleware/requireAuth.ts`: 2箇所の`as any`削除
     - `index.ts`: 1箇所の`as any`削除
-    - `utils/getChatUserId.ts`: 1箇所の`as any`削除
     - `infrastructure/db/seeds/001_auth_users.ts`: 1箇所の`as any`削除
     - `routes/admin/seed.ts`: 1箇所の`as any`削除
-    - `middleware/errorHandler.ts`: `StatusCode`型アサーションに改善（3箇所）
+    - `utils/getChatUserId.ts`: 1箇所は型システム制限により`as any`を保持（`DbClient`型がselect引数をサポートしないため）
+  - **型システム制限により保持した`as any`**:
+    - `middleware/errorHandler.ts`: 1箇所（Honoの型システムで`HttpError.status`を`c.json()`に渡す際に必要）
+    - `utils/getChatUserId.ts`: 1箇所（`DbClient`型が`select({ id: ... })`形式をサポートしないため）
 
 **CI/CD拡充**:
 - [ ] #19 PRプレビュー環境 (M: 1-2d)
