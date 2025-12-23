@@ -69,10 +69,11 @@
   - [x] OpenAPI仕様更新（HealthResponse拡張、503レスポンス追加）
   - [x] テスト追加（健全性・非健全性両方のシナリオ）
   - [x] 2/2 テスト通過 ✅
-- [ ] #5 テストカバレッジ閾値設定 (XS: 1h)
-  - [ ] `vitest.config.ts` に閾値設定
-  - [ ] CI workflow に閾値チェック追加
-  - [ ] 現在のカバレッジ確認
+- [x] #5 テストカバレッジ閾値設定 (XS: 1h) <!-- 2025-12-23 実装完了 -->
+  - [x] `vitest.config.ts` に閾値設定（lines: 75%, functions: 75%, branches: 70%, statements: 75%）
+  - [x] CI workflow に閾値チェック追加（既に `npm run test:coverage` で自動チェック）
+  - [x] カバレッジレポート表示機能確認（GitHub Actions Summary に表示）
+  - [x] 閾値未達時のビルド失敗設定 ✅
 - [ ] #6 デプロイ前テスト実行 (XS: 1h)
   - [ ] `deploy-workers.yml` にテストステップ追加
   - [ ] テスト失敗時のデプロイ中止確認
@@ -116,10 +117,12 @@
   - [ ] XSS対策確認
 
 **開発環境**:
-- [ ] #12 環境変数型定義 (S: 2-4h)
-  - [ ] Zod スキーマ作成
-  - [ ] `validateEnv` 関数実装
-  - [ ] 起動時検証追加
+- [x] #12 環境変数型定義 (S: 2-4h) ✅ 2025-12-23完了
+  - [x] Zod スキーマ作成（`apps/backend/src/utils/env.ts`）
+  - [x] `validateEnv` 関数実装
+  - [x] 起動時検証追加（`server.ts` で `loadEnvConfig()` 実行）
+  - [x] 環境変数テスト作成（13テスト全て通過）
+  - **対応変数**: DATABASE_URL, PORT, NODE_ENV, BETTER_AUTH_SECRET, BASE_URL, LOG_LEVEL
 - [x] #13 構造化ロギング導入 (S: 2-4h) ✅ 2025-12-23完了
   - [x] Logger ユーティリティ作成 (`apps/backend/src/utils/logger.ts`)
   - [x] 全 `console.log` を置換 (errorHandler, drizzleChatRepository, auth/config)
