@@ -21,6 +21,31 @@ When requesting updates, favor small, incremental steps and ask Claude to summar
 tests it ran. For documentation requests, prefer short sections with bullet lists and
 shell commands in fenced `bash` blocks.
 
+## IMPORTANT: Build and Test Verification
+
+**MANDATORY: After ANY code changes, you MUST:**
+
+1. **Run build verification**:
+   ```bash
+   cd apps/backend && npm run build
+   ```
+   - Build MUST succeed with zero errors
+   - Fix all TypeScript compilation errors before proceeding
+
+2. **Run test suite**:
+   ```bash
+   cd apps/backend && npm test
+   ```
+   - All tests MUST pass
+   - Verify no test failures or regressions
+
+3. **Only mark work as complete when**:
+   - Build succeeds with zero errors
+   - All tests pass (no failures)
+   - No TypeScript type errors
+
+**DO NOT consider a task complete if build or tests fail.**
+
 ## Command execution rules
 
 **Do NOT execute the following commands unless explicitly requested by the user:**
