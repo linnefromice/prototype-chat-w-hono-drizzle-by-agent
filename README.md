@@ -392,4 +392,5 @@ MIT
 - 📖 [環境設定ガイド](docs/ENVIRONMENT_SETUP.md) - HTTP/HTTPS、環境変数、デプロイ方法
 - 📖 [認証ドキュメント](docs/AUTHENTICATION.md) - Better Auth実装の詳細
 - ⚡ [パフォーマンス最適化ガイド](apps/backend/PERFORMANCE.md) - Cloudflare Workers の CPU 時間制限と対策
+- 🔒 [CORS トラブルシューティング](apps/backend/CORS_TROUBLESHOOTING.md) - iOS シミュレータからの認証エラー対応
 - 📖 [認証実装状況](docs/AUTHENTICATION_STATUS.md) - 認証機能の実装状況

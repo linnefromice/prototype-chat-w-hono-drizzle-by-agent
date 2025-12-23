@@ -46,6 +46,22 @@ export const createAuth = (db: DrizzleD1Database<typeof schema>, secret?: string
     baseURL,
     basePath: '/api/auth',  // Required: tells BetterAuth it's mounted at this path
 
+    // Trusted origins for CORS (prevents CSRF and open redirects)
+    // In development, allow localhost and iOS simulator requests
+    // In production, restrict to specific domains
+    trustedOrigins: process.env.NODE_ENV === 'production'
+      ? [
+          'https://prototype-hono-drizzle-backend.linnefromice.workers.dev',
+          // Add your production frontend domains here
+        ]
+      : [
+          'http://localhost:*',      // Local development (all ports)
+          'http://127.0.0.1:*',      // Local development via IP
+          'capacitor://localhost',   // iOS app (Capacitor)
+          'ionic://localhost',       // iOS app (Ionic)
+          'http://localhost',        // iOS simulator
+        ],
+
     // Database configuration
     database: drizzleAdapter(db, {
       provider: "sqlite",
