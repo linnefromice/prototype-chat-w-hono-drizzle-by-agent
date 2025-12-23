@@ -24,6 +24,13 @@ export default defineConfig({
         '**/src/infrastructure/db/migrations/**',
         '**/src/infrastructure/db/seeds/**',
       ],
+      // Coverage thresholds - tests will fail if coverage falls below these values
+      thresholds: {
+        lines: 70,
+        functions: 70,
+        branches: 70,
+        statements: 70,
+      },
     },
   },
   resolve: {

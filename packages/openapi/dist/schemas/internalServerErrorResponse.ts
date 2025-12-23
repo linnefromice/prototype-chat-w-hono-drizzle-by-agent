@@ -7,6 +7,6 @@
 import type { ErrorResponse } from "./errorResponse";
 
 /**
- * Deprecated: Use ErrorResponse instead
+ * Internal server error
  */
-export type AuthError = ErrorResponse;
+export type InternalServerErrorResponse = ErrorResponse;

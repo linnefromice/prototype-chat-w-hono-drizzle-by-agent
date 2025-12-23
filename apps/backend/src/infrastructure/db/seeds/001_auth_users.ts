@@ -51,7 +51,8 @@ async function seed() {
   console.log('🌱 Starting auth users seed...')
   console.log(`Creating ${initialUsers.length} auth users with password: "${PASSWORD}"`)
 
-  const auth = createAuth(db as any)
+  // createAuth now works with both D1 and BetterSQLite3 thanks to generics
+  const auth = createAuth(db)
   let successCount = 0
   let skipCount = 0
 

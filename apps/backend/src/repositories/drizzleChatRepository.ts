@@ -26,39 +26,44 @@ import {
   reactions,
   users,
 } from '../infrastructure/db/schema'
-import type { ChatRepository, MessageQueryOptions } from './chatRepository'
+import type { ChatRepository, MessageQueryOptions} from './chatRepository'
+import { logger } from '../utils/logger'
 
 const mapParticipant = (
   participantRow: typeof participants.$inferSelect,
   userRow: typeof users.$inferSelect,
-): Participant => ({
-  id: participantRow.id,
-  conversationId: participantRow.conversationId,
-  userId: participantRow.userId,
-  role: participantRow.role,
-  // SQLite stores dates as ISO 8601 strings
-  joinedAt: participantRow.joinedAt,
-  leftAt: participantRow.leftAt ?? undefined,
-  user: {
-    id: userRow.id,
-    idAlias: userRow.idAlias,
-    name: userRow.name,
-    avatarUrl: userRow.avatarUrl ?? undefined,
-    createdAt: userRow.createdAt,
-  },
-})
+): Participant => {
+  return {
+    id: participantRow.id,
+    conversationId: participantRow.conversationId,
+    userId: participantRow.userId,
+    role: participantRow.role as Participant['role'],
+    // SQLite stores dates as ISO 8601 strings
+    joinedAt: participantRow.joinedAt,
+    leftAt: participantRow.leftAt ?? undefined,
+    user: {
+      id: userRow.id,
+      idAlias: userRow.idAlias,
+      name: userRow.name,
+      avatarUrl: userRow.avatarUrl ?? undefined,
+      createdAt: userRow.createdAt,
+    },
+  } as Participant
+}
 
 const mapConversation = (
   row: typeof conversations.$inferSelect,
-  participantList: Participant[] = [],
-): ConversationDetail => ({
-  id: row.id,
-  type: row.type,
-  name: row.name ?? undefined,
-  // SQLite stores dates as ISO 8601 strings
-  createdAt: row.createdAt,
-  participants: participantList,
-})
+  participantList?: Participant[],
+): ConversationDetail => {
+  return {
+    id: row.id,
+    type: row.type,
+    name: row.name ?? undefined,
+    // SQLite stores dates as ISO 8601 strings
+    createdAt: row.createdAt,
+    participants: participantList ?? [],
+  } as ConversationDetail
+}
 
 const mapMessage = (row: typeof messages.$inferSelect): Omit<Message, 'reactions'> => ({
   id: row.id,
@@ -127,7 +132,7 @@ export class DrizzleChatRepository implements ChatRepository {
     }))
 
     if (!participantsPayload.length) {
-      return mapConversation(conversationRow, [])
+      return mapConversation(conversationRow)
     }
 
     await this.client.insert(participants).values(participantsPayload)
@@ -290,7 +295,9 @@ export class DrizzleChatRepository implements ChatRepository {
 
   async listMessages(conversationId: string, options: MessageQueryOptions = {}): Promise<Message[]> {
     const { before, limit = 50 } = options
+    const REACTION_LIMIT_PER_MESSAGE = 100
 
+    // 1. Fetch messages
     const messageRows = await this.client
       .select()
       .from(messages)
@@ -306,22 +313,40 @@ export class DrizzleChatRepository implements ChatRepository {
       .orderBy(desc(messages.createdAt))
       .limit(limit)
 
-    // Fetch reactions for each message
-    const messagesWithReactions = await Promise.all(
-      messageRows.map(async (msgRow) => {
-        const reactionRows = await this.client
-          .select()
-          .from(reactions)
-          .where(eq(reactions.messageId, msgRow.id))
+    if (messageRows.length === 0) {
+      return []
+    }
 
-        return {
-          ...mapMessage(msgRow),
-          reactions: reactionRows.map(mapReaction),
-        }
-      })
-    )
+    // 2. Fetch all reactions for these messages in a single query (fixes N+1)
+    const messageIds = messageRows.map(m => m.id)
+    let allReactions: Array<typeof reactions.$inferSelect> = []
 
-    return messagesWithReactions
+    try {
+      allReactions = await this.client
+        .select()
+        .from(reactions)
+        .where(inArray(reactions.messageId, messageIds))
+        .orderBy(desc(reactions.createdAt))
+    } catch (error) {
+      // If reactions fetch fails, still return messages without reactions
+      logger.error('Failed to fetch reactions', error)
+    }
+
+    // 3. Group reactions by messageId with limit per message
+    const reactionsByMessageId = new Map<string, Array<typeof reactions.$inferSelect>>()
+    for (const reaction of allReactions) {
+      const existing = reactionsByMessageId.get(reaction.messageId) || []
+      if (existing.length < REACTION_LIMIT_PER_MESSAGE) {
+        existing.push(reaction)
+        reactionsByMessageId.set(reaction.messageId, existing)
+      }
+    }
+
+    // 4. Combine messages with their reactions
+    return messageRows.map(msgRow => ({
+      ...mapMessage(msgRow),
+      reactions: (reactionsByMessageId.get(msgRow.id) || []).map(mapReaction),
+    }))
   }
 
   async findMessageById(messageId: string): Promise<Message | null> {

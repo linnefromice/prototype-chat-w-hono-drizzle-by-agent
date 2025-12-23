@@ -11,6 +11,10 @@ import zod from "zod";
  */
 export const getHealthResponse = zod.object({
   ok: zod.boolean(),
+  database: zod.object({
+    status: zod.enum(["healthy", "unhealthy"]),
+    message: zod.string().optional(),
+  }),
 });
 
 /**
@@ -677,11 +681,14 @@ export { postConversationsIdReadBody as UpdateConversationReadRequestSchema };
 export { postMessagesIdBookmarksBody as BookmarkRequestSchema };
 export { postUsersBody as CreateUserRequestSchema };
 
+// Re-export types from schemas
+export type { Participant } from './schemas/ParticipantSchema';
+export type { BookmarkListItem } from './schemas/BookmarkListItemSchema';
+
 // Re-export TypeScript types for use in repositories and usecases
 export type HealthResponse = zod.infer<typeof getHealthResponse>;
 export type Item = zod.infer<typeof getItemsResponseItem>;
 export type User = zod.infer<typeof postUsersBody> & { id: string; createdAt: string };
-export type Participant = zod.infer<typeof postConversationsIdLeaveResponse>;
 export type ConversationDetail = zod.infer<typeof getConversationsIdResponse>;
 export type Message = zod.infer<typeof getConversationsIdMessagesResponseItem>;
 export type Reaction = zod.infer<typeof deleteMessagesIdReactionsEmojiResponse>;
@@ -693,7 +700,6 @@ export type Bookmark = {
   userId: string;
   createdAt: string;
 };
-export type BookmarkListItem = zod.infer<typeof getBookmarksResponseItem>;
 export type CreateConversationRequest = zod.infer<typeof postConversationsBody>;
 export type AddParticipantRequest = zod.infer<typeof postConversationsIdParticipantsBody>;
 export type SendMessageRequest = zod.infer<typeof postConversationsIdMessagesBody>;

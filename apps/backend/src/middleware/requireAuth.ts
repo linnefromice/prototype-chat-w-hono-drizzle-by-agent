@@ -23,15 +23,10 @@ export const requireAuth = createMiddleware<{
 }>(async (c, next) => {
   // In test/development mode, use the local BetterSQLite3 database
   // In production, use Cloudflare D1
-  let db
-  if (process.env.NODE_ENV === 'test' || !c.env?.DB) {
-    // Use local BetterSQLite3 database for tests
-    const { db: localDb } = await import('../infrastructure/db/client')
-    db = localDb as any // Cast to satisfy TypeScript - BetterAuth works with both
-  } else {
-    // Use Cloudflare D1 in production
-    db = createD1Client(c.env.DB)
-  }
+  // Both database types work with createAuth thanks to generics
+  const db = (process.env.NODE_ENV === 'test' || !c.env?.DB)
+    ? (await import('../infrastructure/db/client')).db
+    : createD1Client(c.env.DB)
 
   const secret = c.env?.BETTER_AUTH_SECRET
   const baseUrl = c.env?.BASE_URL
@@ -79,15 +74,10 @@ export const optionalAuth = createMiddleware<{
 }>(async (c, next) => {
   // In test/development mode, use the local BetterSQLite3 database
   // In production, use Cloudflare D1
-  let db
-  if (process.env.NODE_ENV === 'test' || !c.env?.DB) {
-    // Use local BetterSQLite3 database for tests
-    const { db: localDb } = await import('../infrastructure/db/client')
-    db = localDb as any // Cast to satisfy TypeScript - BetterAuth works with both
-  } else {
-    // Use Cloudflare D1 in production
-    db = createD1Client(c.env.DB)
-  }
+  // Both database types work with createAuth thanks to generics
+  const db = (process.env.NODE_ENV === 'test' || !c.env?.DB)
+    ? (await import('../infrastructure/db/client')).db
+    : createD1Client(c.env.DB)
 
   const secret = c.env?.BETTER_AUTH_SECRET
   const baseUrl = c.env?.BASE_URL

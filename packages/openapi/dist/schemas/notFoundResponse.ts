@@ -7,6 +7,6 @@
 import type { ErrorResponse } from "./errorResponse";
 
 /**
- * Deprecated: Use ErrorResponse instead
+ * Not found - Resource does not exist
  */
-export type AuthError = ErrorResponse;
+export type NotFoundResponse = ErrorResponse;

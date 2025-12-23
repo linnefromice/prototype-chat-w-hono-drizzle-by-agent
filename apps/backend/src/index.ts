@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import type { Env } from './infrastructure/db/client.d1'
 import { createD1Client } from './infrastructure/db/client.d1'
 import { createAuth } from './infrastructure/auth'
+import { errorHandler } from './middleware/errorHandler'
 import healthRouter from './routes/health'
 import conversationsRouter from './routes/conversations'
 import messagesRouter from './routes/messages'
@@ -13,6 +14,9 @@ import adminRouter from './routes/admin'
 // Cloudflare Workers entry point with D1 bindings
 const app = new Hono<{ Bindings: Env }>()
 
+// Global error handler
+app.onError(errorHandler)
+
 // Better Auth authentication handler
 // Automatically handles: /api/auth/sign-up/username, /api/auth/sign-in/username, /api/auth/sign-out, etc.
 // Use app.on() to catch all HTTP methods for auth routes
@@ -20,15 +24,10 @@ const app = new Hono<{ Bindings: Env }>()
 app.on(['POST', 'GET'], '/api/auth/*', async (c) => {
   // In test/development mode, use the local BetterSQLite3 database
   // In production, use Cloudflare D1
-  let db
-  if (process.env.NODE_ENV === 'test' || !c.env?.DB) {
-    // Use local BetterSQLite3 database for tests
-    const { db: localDb } = await import('./infrastructure/db/client')
-    db = localDb as any // Cast to satisfy TypeScript - BetterAuth works with both
-  } else {
-    // Use Cloudflare D1 in production
-    db = createD1Client(c.env.DB)
-  }
+  // Both database types work with createAuth thanks to generics
+  const db = (process.env.NODE_ENV === 'test' || !c.env?.DB)
+    ? (await import('./infrastructure/db/client')).db
+    : createD1Client(c.env.DB)
 
   // Pass BETTER_AUTH_SECRET and BASE_URL from Cloudflare Workers env or process.env (for local)
   const secret = c.env?.BETTER_AUTH_SECRET

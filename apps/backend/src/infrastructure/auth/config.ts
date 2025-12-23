@@ -1,8 +1,17 @@
 import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { username } from "better-auth/plugins"
-import type { DrizzleD1Database } from 'drizzle-orm/d1'
 import * as schema from '../db/schema'
+import { logger } from '../../utils/logger'
+
+// Generic type for Drizzle database instances
+// Supports both D1 (Cloudflare Workers) and BetterSQLite3 (local development/testing)
+type DrizzleDatabase = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  query: any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any
+}
 
 /**
  * Create Better Auth instance with username authentication
@@ -12,12 +21,16 @@ import * as schema from '../db/schema'
  * - Session management (7 days expiry)
  * - Future-ready for TOTP, OAuth, email verification
  *
- * @param db - Drizzle database instance
+ * @param db - Drizzle database instance (D1 or BetterSQLite3)
  * @param secret - Secret key for signing tokens (from env.BETTER_AUTH_SECRET or process.env.BETTER_AUTH_SECRET)
  * @param baseUrl - Optional base URL override (from Hono context env.BASE_URL)
  * @returns Better Auth instance
  */
-export const createAuth = (db: DrizzleD1Database<typeof schema>, secret?: string, baseUrl?: string) => {
+export const createAuth = <TDatabase extends DrizzleDatabase>(
+  db: TDatabase,
+  secret?: string,
+  baseUrl?: string
+) => {
   const baseURL = process.env.NODE_ENV === 'test'
     ? 'http://localhost:3000'  // Test environment
     : (baseUrl || process.env.BETTER_AUTH_URL || process.env.BASE_URL || 'https://prototype-hono-drizzle-backend.linnefromice.workers.dev')  // Production
@@ -26,7 +39,7 @@ export const createAuth = (db: DrizzleD1Database<typeof schema>, secret?: string
   const isSecureContext = baseURL.startsWith('https://')
 
   // Debug log (can be removed later)
-  console.log('[Better Auth Config]', {
+  logger.debug('Better Auth Config', {
     baseURL,
     isSecureContext,
     useSecureCookies: isSecureContext,

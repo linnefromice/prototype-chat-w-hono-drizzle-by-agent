@@ -5,8 +5,6 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ErrorResponse } from "./errorResponse";
+import type { ValidationErrorResponse } from "./validationErrorResponse";
 
-/**
- * Deprecated: Use ErrorResponse instead
- */
-export type AuthError = ErrorResponse;
+export type BadRequestResponse = ErrorResponse | ValidationErrorResponse;

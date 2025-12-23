@@ -65,10 +65,9 @@ export async function seedAuthUsersByAppUsers(c: Context<{ Bindings: Env; Variab
     }
 
     // Step 2: Better Auth で auth_user を作成
-    // Note: getDbClient returns either D1 or BetterSQLite3 database
-    // BetterAuth works with both, so we cast to any to satisfy TypeScript
+    // createAuth now works with both D1 and BetterSQLite3 thanks to generics
     const secret = c.env?.BETTER_AUTH_SECRET
-    const auth = createAuth(db as any, secret)
+    const auth = createAuth(db, secret)
     const results: SeedResult[] = []
     let createdCount = 0
     let skippedCount = 0

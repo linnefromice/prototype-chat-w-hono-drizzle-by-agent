@@ -4,7 +4,9 @@
  * Prototype Hono Drizzle API
  * OpenAPI spec version: 0.1.0
  */
+import type { HealthResponseDatabase } from "./healthResponseDatabase";
 
 export interface HealthResponse {
   ok: boolean;
+  database: HealthResponseDatabase;
 }

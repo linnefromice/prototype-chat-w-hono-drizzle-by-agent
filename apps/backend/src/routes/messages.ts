@@ -2,7 +2,6 @@ import { Hono } from 'hono'
 import { BookmarkRequestSchema, ReactionRequestSchema } from 'openapi'
 import { DrizzleChatRepository } from '../repositories/drizzleChatRepository'
 import { ChatUsecase } from '../usecases/chatUsecase'
-import { HttpError } from '../utils/errors'
 import { getDbClient } from '../utils/dbClient'
 import { getChatUserId } from '../utils/getChatUserId'
 import { requireAuth } from '../middleware/requireAuth'
@@ -14,111 +13,71 @@ const router = new Hono<{
   Variables: AuthVariables
 }>()
 
-const handleError = (error: unknown, c: any) => {
-  if (error instanceof HttpError) {
-    return c.json({ message: error.message }, error.status)
-  }
-
-  // Log unexpected errors
-  console.error('Unexpected error:', error)
-
-  // Return a generic error response
-  const message = error instanceof Error ? error.message : 'Internal Server Error'
-  return c.json({ message }, 500)
-}
+// Note: Error handling is now managed by the global error handler in index.ts
+// All errors are automatically caught and handled by app.onError(errorHandler)
 
 router.delete('/:id', requireAuth, async c => {
   const messageId = c.req.param('id')
   const authUser = c.get('authUser')
-
-  try {
-    const db = await getDbClient(c)
-    const userId = await getChatUserId(db, authUser!)
-    const chatUsecase = new ChatUsecase(new DrizzleChatRepository(db))
-    await chatUsecase.deleteMessage(messageId, userId)
-    return c.body(null, 204)
-  } catch (error) {
-    return handleError(error, c)
-  }
+  const db = await getDbClient(c)
+  const userId = await getChatUserId(db, authUser!)
+  const chatUsecase = new ChatUsecase(new DrizzleChatRepository(db))
+  await chatUsecase.deleteMessage(messageId, userId)
+  return c.body(null, 204)
 })
 
 router.get('/:id/reactions', requireAuth, async c => {
   const messageId = c.req.param('id')
-
-  try {
-    const db = await getDbClient(c)
-    const chatUsecase = new ChatUsecase(new DrizzleChatRepository(db))
-    const reactions = await chatUsecase.listReactions(messageId)
-    return c.json(reactions)
-  } catch (error) {
-    return handleError(error, c)
-  }
+  const db = await getDbClient(c)
+  const chatUsecase = new ChatUsecase(new DrizzleChatRepository(db))
+  const reactions = await chatUsecase.listReactions(messageId)
+  return c.json(reactions)
 })
 
 router.post('/:id/reactions', requireAuth, async c => {
   const messageId = c.req.param('id')
   const authUser = c.get('authUser')
   const body = await c.req.json()
+  const db = await getDbClient(c)
+  const userId = await getChatUserId(db, authUser!)
 
-  try {
-    const db = await getDbClient(c)
-    const userId = await getChatUserId(db, authUser!)
+  // Parse request body (userId is automatically added from session)
+  const payload = ReactionRequestSchema.parse(body)
 
-    // Parse request body (userId is automatically added from session)
-    const payload = ReactionRequestSchema.parse(body)
-
-    const chatUsecase = new ChatUsecase(new DrizzleChatRepository(db))
-    const reaction = await chatUsecase.addReaction(messageId, userId, payload.emoji)
-    return c.json(reaction, 201)
-  } catch (error) {
-    return handleError(error, c)
-  }
+  const chatUsecase = new ChatUsecase(new DrizzleChatRepository(db))
+  const reaction = await chatUsecase.addReaction(messageId, userId, payload.emoji)
+  return c.json(reaction, 201)
 })
 
 router.delete('/:id/reactions/:emoji', requireAuth, async c => {
   const messageId = c.req.param('id')
   const emoji = c.req.param('emoji')
   const authUser = c.get('authUser')
-
-  try {
-    const db = await getDbClient(c)
-    const userId = await getChatUserId(db, authUser!)
-    const chatUsecase = new ChatUsecase(new DrizzleChatRepository(db))
-    const reaction = await chatUsecase.removeReaction(messageId, emoji, userId)
-    return c.json(reaction)
-  } catch (error) {
-    return handleError(error, c)
-  }
+  const db = await getDbClient(c)
+  const userId = await getChatUserId(db, authUser!)
+  const chatUsecase = new ChatUsecase(new DrizzleChatRepository(db))
+  const reaction = await chatUsecase.removeReaction(messageId, emoji, userId)
+  return c.json(reaction)
 })
 
 router.post('/:id/bookmarks', requireAuth, async c => {
   const messageId = c.req.param('id')
   const authUser = c.get('authUser')
-
-  try {
-    const db = await getDbClient(c)
-    const userId = await getChatUserId(db, authUser!)
-    const chatUsecase = new ChatUsecase(new DrizzleChatRepository(db))
-    const bookmark = await chatUsecase.addBookmark(messageId, userId)
-    return c.json({ status: 'bookmarked', bookmark }, 201)
-  } catch (error) {
-    return handleError(error, c)
-  }
+  const db = await getDbClient(c)
+  const userId = await getChatUserId(db, authUser!)
+  const chatUsecase = new ChatUsecase(new DrizzleChatRepository(db))
+  const bookmark = await chatUsecase.addBookmark(messageId, userId)
+  return c.json({ status: 'bookmarked', bookmark }, 201)
 })
 
 router.delete('/:id/bookmarks', requireAuth, async c => {
   const messageId = c.req.param('id')
   const authUser = c.get('authUser')
-
-  try {
-    const db = await getDbClient(c)
-    const userId = await getChatUserId(db, authUser!)
-    const chatUsecase = new ChatUsecase(new DrizzleChatRepository(db))
-    await chatUsecase.removeBookmark(messageId, userId)
-    return c.json({ status: 'unbookmarked' })
-  } catch (error) {
-    return handleError(error, c)
-  }
+  const db = await getDbClient(c)
+  const userId = await getChatUserId(db, authUser!)
+  const chatUsecase = new ChatUsecase(new DrizzleChatRepository(db))
+  await chatUsecase.removeBookmark(messageId, userId)
+  return c.json({ status: 'unbookmarked' })
 })
 
 export default router
